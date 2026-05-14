@@ -5,6 +5,8 @@ These return HTML fragments meant to be swapped in by HTMX.
 
 from __future__ import annotations
 
+import html
+from collections.abc import Callable
 from typing import Annotated
 
 from arq import ArqRedis
@@ -16,6 +18,7 @@ from albumine.api.deps import (
     get_pipeline,
     get_redis,
     get_session_factory,
+    get_translator,
     templates,
 )
 from albumine.config import EnhancementLevel
@@ -34,6 +37,7 @@ async def correct_pair(
     pair_id: str,
     pipeline: Annotated[Pipeline, Depends(get_pipeline)],
     session_factory: Annotated[SessionFactory, Depends(get_session_factory)],
+    t: Annotated[Callable[..., str], Depends(get_translator)],
     raw_text: Annotated[str, Form()] = "",
     date_text: Annotated[str, Form()] = "",
     location: Annotated[str, Form()] = "",
@@ -53,10 +57,10 @@ async def correct_pair(
             event=event,
             notes=notes,
         )
-        flash = ("ok", "Korrektur gespeichert und in die Bilddatei geschrieben.")
+        flash = ("ok", t("flash.correction_saved"))
     except ExifToolError as exc:
         _log.warning("actions.correction_write_failed", pair_id=pair_id, error=str(exc))
-        flash = ("error", f"Metadaten konnten nicht geschrieben werden: {exc}")
+        flash = ("error", t("flash.correction_failed", error=str(exc)))
 
     record = fetch_record(session_factory, pair_id)
     return templates.TemplateResponse(
@@ -69,17 +73,18 @@ async def reprocess_pair(
     pair_id: str,
     session_factory: Annotated[SessionFactory, Depends(get_session_factory)],
     redis: Annotated[ArqRedis | None, Depends(get_redis)],
+    t: Annotated[Callable[..., str], Depends(get_translator)],
     enhancement_level: Annotated[str, Form()] = "",
 ) -> HTMLResponse:
     """Enqueue a forced re-processing of one pair, optionally at a given level."""
     record = fetch_record(session_factory, pair_id)
     if redis is None:
-        return _flash("error", "Queue nicht verfügbar — Redis ist offline.")
+        return _flash("error", t("flash.queue_unavailable"))
 
     try:
         level = EnhancementLevel(enhancement_level) if enhancement_level else None
     except ValueError:
-        return _flash("error", f"Unbekannte Verbesserungs-Stufe: {enhancement_level}")
+        return _flash("error", t("flash.unknown_level", value=enhancement_level))
 
     pair = pair_from_record(record)
     await redis.enqueue_job(
@@ -94,20 +99,21 @@ async def reprocess_pair(
         pair_id=pair_id,
         level=str(level) if level else "default",
     )
-    return _flash("ok", "Re-Processing wurde eingereiht.")
+    return _flash("ok", t("flash.reprocess_queued"))
 
 
 @router.post("/rescan", response_class=HTMLResponse)
 async def rescan_input(
     redis: Annotated[ArqRedis | None, Depends(get_redis)],
+    t: Annotated[Callable[..., str], Depends(get_translator)],
 ) -> HTMLResponse:
     """Trigger a re-scan of the input folder."""
     if redis is None:
-        return _flash("error", "Queue nicht verfügbar — Redis ist offline.")
+        return _flash("error", t("flash.queue_unavailable"))
     await redis.enqueue_job("scan_input_task", _job_id="scan-input")
     _log.info("actions.rescan_enqueued")
-    return _flash("ok", "Input-Ordner wird neu eingelesen.")
+    return _flash("ok", t("flash.rescan_started"))
 
 
 def _flash(kind: str, message: str) -> HTMLResponse:
-    return HTMLResponse(f'<span class="flash flash-{kind}">{message}</span>')
+    return HTMLResponse(f'<span class="flash flash-{kind}">{html.escape(message)}</span>')

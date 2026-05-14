@@ -224,6 +224,33 @@ Degraded-Modus weiter — Galerie und Korrekturen funktionieren, nur die
 Queue-Aktionen (Re-Processing, Rescan) melden „Redis offline". htmx ist lokal
 gebündelt (`static/htmx.min.js`), kein CDN-Zugriff nötig.
 
+## Settings-Panel & i18n (Phase 10)
+
+**Konfigurations-Layering:** Die Basis ist die ENV-basierte `Settings`
+(Pydantic). Darüber liegt ein DB-Overlay: `AppSetting`-Zeilen (Key-Value),
+geschrieben vom Web-Settings-Panel. `db/settings_store.py:effective_settings`
+merged beides — die String-Overrides werden von Pydantic auf die typisierten
+Felder gecoerct; ungültige Overrides werden ignoriert (die App muss immer
+starten können).
+
+`EDITABLE_SETTINGS` ist die Registry der editierbaren Felder mit Metadaten
+(Kategorie, Typ, `secret`, `restart_required`). **Live wirksam** (die Pipeline
+löst pro Job neu auf): Sprache, Bildverbesserung, JPEG-Qualität, Auto-Crop,
+Fallback, Enhancement-Tool-Pfade. **Neustart nötig** (einmalig beim Start
+aufgelöst): AI-Provider, Pfade, Ports, Redis, Logging. `config_dir` ist *nicht*
+editierbar — dort liegt die Datenbank selbst (Bootstrap-Henne-Ei-Problem).
+
+Secrets (API-Keys) werden nie an den Browser zurückgegeben; ein leeres
+Secret-Feld beim Speichern heißt „Wert behalten".
+
+**i18n** (`i18n.py`): flache JSON-Dateien in `web/translations/<code>.json`,
+eine pro Sprache (16 ausgeliefert; neue Sprache = neue Datei + Eintrag in
+`LANGUAGES`). Keine gettext/Babel-Abhängigkeit. Fehlende Keys fallen auf
+Englisch zurück, dann auf den Key selbst. Ein Jinja-Context-Processor
+(`api/deps.py`) injiziert `t`, `lang` und `text_dir` in jedes Template; Route-
+Handler bekommen `t` über `Depends(get_translator)`. Die aktive Sprache kommt
+aus dem `ui_language`-Override (DB), sonst aus der ENV-Basis.
+
 ## Enhancement-Pipeline (Phase 7)
 
 `processing/enhance.py:apply_enhancement` wird in der Pipeline nach dem

@@ -55,6 +55,11 @@
           Description="Port der Web-UI." Type="Port" Display="always"
           Required="true" Mask="false">8765</Config>
 
+  <!-- ========================= Oberfläche =========================== -->
+  <Config Name="Sprache" Target="ALBUMINE_UI_LANGUAGE" Default="de" Mode=""
+          Description="Start-Sprache der Oberfläche (später im Einstellungen-Panel änderbar). Verfügbar: de en fr es it pt nl pl ru uk cs sv tr zh-Hans ja ko."
+          Type="Variable" Display="always" Required="false" Mask="false">de</Config>
+
   <!-- ============================ Paths ============================ -->
   <Config Name="Input (Scans)" Target="/input"
           Default="/mnt/user/scans/eingang/" Mode="rw"

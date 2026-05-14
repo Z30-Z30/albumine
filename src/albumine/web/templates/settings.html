@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}AlbuMine — {{ t("settings.title") }}{% endblock %}
+
+{% block content %}
+<h2>{{ t("settings.title") }}</h2>
+
+{% if flash %}
+<p class="flash flash-{{ flash[0] }}">{{ flash[1] }}</p>
+{% endif %}
+
+<p class="settings-note">{{ t("settings.restart_note") }}</p>
+
+<form method="post" action="/settings" class="settings-form">
+    {% for category in categories %}
+    <fieldset class="settings-group">
+        <legend>{{ t("settings.category." ~ category) }}</legend>
+        {% for f in fields if f.category == category %}
+        <div class="setting-row">
+            <label for="set-{{ f.key }}" class="setting-label">
+                {{ t("setting." ~ f.key) }}
+                {% if f.restart_required %}
+                <span class="restart-badge" title="{{ t('settings.restart_required') }}">⚠</span>
+                {% endif %}
+            </label>
+            <div class="setting-control">
+                {% if f.kind == "language" %}
+                <select id="set-{{ f.key }}" name="{{ f.key }}">
+                    {% for language in languages %}
+                    <option value="{{ language.code }}"
+                            {{ "selected" if language.code == f.value else "" }}>
+                        {{ language.native_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% elif f.kind == "choice" %}
+                <select id="set-{{ f.key }}" name="{{ f.key }}">
+                    {% for choice in f.choices %}
+                    <option value="{{ choice }}"
+                            {{ "selected" if choice == f.value else "" }}>{{ choice }}</option>
+                    {% endfor %}
+                </select>
+                {% elif f.kind == "bool" %}
+                <input type="checkbox" id="set-{{ f.key }}" name="{{ f.key }}"
+                       {{ "checked" if f.value == "True" else "" }}>
+                {% elif f.kind == "secret" %}
+                <input type="password" id="set-{{ f.key }}" name="{{ f.key }}"
+                       placeholder="{{ t('settings.secret_placeholder') if f.secret_set
+                                       else t('settings.secret_unset') }}">
+                {% elif f.kind == "int" %}
+                <input type="number" id="set-{{ f.key }}" name="{{ f.key }}" value="{{ f.value }}">
+                {% else %}
+                <input type="text" id="set-{{ f.key }}" name="{{ f.key }}" value="{{ f.value }}">
+                {% endif %}
+                {% if f.description %}
+                <small class="setting-hint">{{ f.description }}</small>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </fieldset>
+    {% endfor %}
+    <button type="submit">{{ t("settings.save") }}</button>
+</form>
+{% endblock %}

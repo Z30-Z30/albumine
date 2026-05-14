@@ -23,6 +23,7 @@ from albumine.ai.base import AIProviderError, BackExtraction, ExtractedDate, Vis
 from albumine.config import EnhancementLevel, Settings
 from albumine.db import ScanRecord, ScanStatus
 from albumine.db.engine import SessionFactory
+from albumine.db.settings_store import effective_settings
 from albumine.ingest import ScanPair, scan_directory
 from albumine.ingest.models import DetectionMethod, PageRef
 from albumine.logging import get_logger
@@ -128,8 +129,9 @@ class Pipeline:
         enhancement_level: EnhancementLevel | None = None,
     ) -> list[PipelineResult]:
         """Detect and process every scan pair currently in the input folder."""
-        pairs = scan_directory(self._settings.input_dir)
-        _log.info("pipeline.directory_scan", input=str(self._settings.input_dir), pairs=len(pairs))
+        settings = effective_settings(self._settings, self._session_factory)
+        pairs = scan_directory(settings.input_dir)
+        _log.info("pipeline.directory_scan", input=str(settings.input_dir), pairs=len(pairs))
         return [
             await self.process_pair(pair, force=force, enhancement_level=enhancement_level)
             for pair in pairs
@@ -153,26 +155,28 @@ class Pipeline:
         Returns a :class:`PipelineResult`; never raises for expected processing
         failures — those are recorded on the :class:`ScanRecord` as ``FAILED``.
         """
+        settings = effective_settings(self._settings, self._session_factory)
+
         if not force and self._already_done(pair.pair_id):
             _log.info("pipeline.skip_done", pair_id=pair.pair_id)
             return PipelineResult(
                 pair_id=pair.pair_id,
                 status=ScanStatus.DONE,
-                output_path=self._output_path_for(pair),
+                output_path=self._output_path_for(pair, settings),
                 used_fallback=False,
             )
 
-        requested_level = enhancement_level or self._settings.default_enhancement_level
+        requested_level = enhancement_level or settings.default_enhancement_level
         self._mark_processing(pair)
 
         try:
-            output_path = self._output_path_for(pair)
-            front_image = process_front(pair.front, auto_crop=self._settings.auto_crop)
+            output_path = self._output_path_for(pair, settings)
+            front_image = process_front(pair.front, auto_crop=settings.auto_crop)
             front_image, applied_level = apply_enhancement(
-                front_image, requested_level, settings=self._settings
+                front_image, requested_level, settings=settings
             )
-            self._settings.output_dir.mkdir(parents=True, exist_ok=True)
-            save_image(front_image, str(output_path), jpeg_quality=self._settings.jpeg_quality)
+            settings.output_dir.mkdir(parents=True, exist_ok=True)
+            save_image(front_image, str(output_path), jpeg_quality=settings.jpeg_quality)
 
             extraction = BackExtraction()
             used_fallback = False
@@ -181,7 +185,7 @@ class Pipeline:
                 back_result = await extract_back(
                     pair.back,
                     self._provider,
-                    allow_fallback=self._settings.ai_fallback_enabled,
+                    allow_fallback=settings.ai_fallback_enabled,
                 )
                 extraction = back_result.extraction
                 used_fallback = back_result.used_fallback
@@ -191,7 +195,7 @@ class Pipeline:
             metadata = self._build_metadata(
                 pair, extraction, parsed_date, used_fallback, applied_level
             )
-            self._write_metadata(output_path, metadata, self._settings.write_sidecar)
+            self._write_metadata(output_path, metadata, settings.write_sidecar)
         except (FrontProcessingError, AIProviderError, ExifToolError, OSError) as exc:
             self._mark_failed(pair.pair_id, str(exc))
             _log.error("pipeline.failed", pair_id=pair.pair_id, error=str(exc))
@@ -301,9 +305,10 @@ class Pipeline:
             record.error = None
             record.touch()
 
+            settings = effective_settings(self._settings, self._session_factory)
             metadata = self._metadata_from_record(record, parsed_date)
             self._write_metadata(
-                Path(record.output_path), metadata, self._settings.write_sidecar
+                Path(record.output_path), metadata, settings.write_sidecar
             )
 
             session.add(record)
@@ -407,13 +412,13 @@ class Pipeline:
             session.add(record)
             session.commit()
 
-    def _output_path_for(self, pair: ScanPair) -> Path:
+    def _output_path_for(self, pair: ScanPair, settings: Settings) -> Path:
         front = pair.front
         if front.page_index is None:
             stem = front.path.stem
         else:
             stem = f"{front.path.stem}_p{front.page_index + 1:03d}"
-        return self._settings.output_dir / f"{stem}.jpg"
+        return settings.output_dir / f"{stem}.jpg"
 
 
 def _compose_description(

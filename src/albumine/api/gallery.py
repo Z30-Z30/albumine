@@ -57,22 +57,22 @@ async def pair_image(
 ) -> Response:
     """Serve the front (processed output) or back (rasterised source) image."""
     if side not in {"front", "back"}:
-        raise HTTPException(status_code=404, detail="unbekannte Seite")
+        raise HTTPException(status_code=404, detail="error.unknown_side")
     record = fetch_record(session_factory, pair_id)
 
     if side == "front":
         if not record.output_path or not Path(record.output_path).is_file():
-            raise HTTPException(status_code=404, detail="kein verarbeitetes Bild")
+            raise HTTPException(status_code=404, detail="error.no_output_image")
         return FileResponse(record.output_path, media_type="image/jpeg")
 
     if not record.back_path:
-        raise HTTPException(status_code=404, detail="dieses Paar hat keine Rückseite")
+        raise HTTPException(status_code=404, detail="error.no_back")
     page_ref = PageRef(Path(record.back_path), record.back_page_index)
     try:
         image = load_source(page_ref).convert("RGB")
     except FrontProcessingError as exc:
         _log.warning("gallery.back_image_failed", pair_id=pair_id, error=str(exc))
-        raise HTTPException(status_code=404, detail="Rückseite nicht lesbar") from exc
+        raise HTTPException(status_code=404, detail="error.back_unreadable") from exc
     buffer = io.BytesIO()
     image.save(buffer, "JPEG", quality=85)
     return Response(content=buffer.getvalue(), media_type="image/jpeg")

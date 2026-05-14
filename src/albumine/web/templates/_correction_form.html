@@ -7,38 +7,40 @@
     {% endif %}
 
     <label>
-        Rohtext (Transkription der Rückseite)
+        {{ t("form.raw_text") }}
         <textarea name="raw_text" rows="3">{{ record.raw_text or "" }}</textarea>
     </label>
 
     <label>
-        Datum (Freitext, z. B. „Mai 1973", „Sommer 1962")
+        {{ t("form.date") }}
         <input type="text" name="date_text" value="{{ record.date_original_text or '' }}">
         <small>
-            Erkannt: {{ record.date_iso or "—" }}
-            {% if record.date_confidence %}(Confidence: {{ record.date_confidence }}){% endif %}
+            {{ t("form.date_recognized", iso=record.date_iso or "—") }}
+            {% if record.date_confidence %}
+            ({{ t("form.confidence", value=record.date_confidence) }})
+            {% endif %}
         </small>
     </label>
 
     <label>
-        Ort
+        {{ t("form.location") }}
         <input type="text" name="location" value="{{ record.location or '' }}">
     </label>
 
     <label>
-        Personen (kommagetrennt)
+        {{ t("form.people") }}
         <input type="text" name="people" value="{{ record.people | join(', ') }}">
     </label>
 
     <label>
-        Anlass
+        {{ t("form.event") }}
         <input type="text" name="event" value="{{ record.event or '' }}">
     </label>
 
     <label>
-        Notizen
+        {{ t("form.notes") }}
         <textarea name="notes" rows="2">{{ record.notes or "" }}</textarea>
     </label>
 
-    <button type="submit">Korrektur speichern</button>
+    <button type="submit">{{ t("form.save_correction") }}</button>
 </form>

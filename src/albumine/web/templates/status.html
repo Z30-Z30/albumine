@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% from "_macros.html" import status_badge %}
 
-{% block title %}AlbuMine — Status{% endblock %}
+{% block title %}AlbuMine — {{ t("status.title") }}{% endblock %}
 
 {% block content %}
-<h2>Status</h2>
+<h2>{{ t("status.title") }}</h2>
 
 <section class="detail-section">
-    <h3>Verarbeitung</h3>
+    <h3>{{ t("status.processing") }}</h3>
     <div class="status-counts">
         {% for status, count in status_counts.items() %}
         <div class="status-count">
-            {{ status_badge(status) }}
+            {{ status_badge(status, t) }}
             <span class="count">{{ count }}</span>
         </div>
         {% endfor %}
@@ -19,25 +19,25 @@
 </section>
 
 <section class="detail-section">
-    <h3>Queue</h3>
+    <h3>{{ t("status.queue") }}</h3>
     {% if redis_online %}
-    <p>{{ queue_depth if queue_depth is not none else "?" }} Job(s) in der Warteschlange.</p>
+    <p>{{ t("status.queue_jobs", count=queue_depth if queue_depth is not none else "?") }}</p>
     {% else %}
-    <p class="flash flash-error">Redis ist offline — die Verarbeitungs-Queue ist nicht verfügbar.</p>
+    <p class="flash flash-error">{{ t("status.redis_offline") }}</p>
     {% endif %}
 </section>
 
 <section class="detail-section">
-    <h3>AI-Backend</h3>
+    <h3>{{ t("status.ai_backend") }}</h3>
     <div hx-get="/status/ai-health" hx-trigger="load" hx-swap="innerHTML">
-        <small>prüfe …</small>
+        <small>{{ t("status.checking") }}</small>
     </div>
 </section>
 
 <section class="detail-section">
-    <h3>Letzte Fehler</h3>
+    <h3>{{ t("status.recent_errors") }}</h3>
     {% if not failures %}
-    <p>Keine Fehler.</p>
+    <p>{{ t("status.no_errors") }}</p>
     {% else %}
     <ul class="failure-list">
         {% for record in failures %}

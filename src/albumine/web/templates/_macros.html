@@ -1,3 +1,3 @@
-{% macro status_badge(status) -%}
-<span class="badge badge-{{ status }}">{{ status | replace("_", " ") }}</span>
+{% macro status_badge(status, t) -%}
+<span class="badge badge-{{ status }}">{{ t("scan_status." ~ status) }}</span>
 {%- endmacro %}

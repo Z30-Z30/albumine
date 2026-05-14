@@ -21,6 +21,7 @@ from arq.connections import RedisSettings
 from albumine.ai import build_provider
 from albumine.config import EnhancementLevel, get_settings
 from albumine.db import create_db_engine, init_db, make_session_factory
+from albumine.db.settings_store import effective_settings
 from albumine.ingest import ScanPair, scan_directory
 from albumine.logging import configure_logging, get_logger
 from albumine.pipeline import Pipeline
@@ -62,16 +63,20 @@ async def scan_input_task(ctx: dict[str, Any]) -> int:
 
 
 async def _on_startup(ctx: dict[str, Any]) -> None:
-    settings = get_settings()
-    configure_logging(level=settings.log_level, json_output=settings.log_json)
-    for directory in (settings.input_dir, settings.output_dir, settings.config_dir):
-        directory.mkdir(parents=True, exist_ok=True)
-    engine = create_db_engine(settings.database_url)
+    base = get_settings()
+    base.config_dir.mkdir(parents=True, exist_ok=True)
+    engine = create_db_engine(base.database_url)
     init_db(engine)
+    session_factory = make_session_factory(engine)
+    # Resolve env + DB-override settings; the Pipeline re-resolves per job.
+    settings = effective_settings(base, session_factory)
+    configure_logging(level=settings.log_level, json_output=settings.log_json)
+    for directory in (settings.input_dir, settings.output_dir):
+        directory.mkdir(parents=True, exist_ok=True)
     provider = build_provider(settings)
     ctx["settings"] = settings
     ctx["provider"] = provider
-    ctx["pipeline"] = Pipeline(settings, provider, make_session_factory(engine))
+    ctx["pipeline"] = Pipeline(base, provider, session_factory)
     _log.info("worker.started", ai_provider=settings.ai_provider)
 
 

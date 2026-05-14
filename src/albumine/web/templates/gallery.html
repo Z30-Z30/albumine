@@ -1,17 +1,14 @@
 {% extends "base.html" %}
 {% from "_macros.html" import status_badge %}
 
-{% block title %}AlbuMine — Galerie{% endblock %}
+{% block title %}AlbuMine — {{ t("gallery.title") }}{% endblock %}
 
 {% block content %}
-<h2>Galerie</h2>
+<h2>{{ t("gallery.title") }}</h2>
 
 {% if not records %}
 <section class="placeholder">
-    <p>
-        Noch keine Scans verarbeitet. Lege Foto-Scans im Input-Ordner ab und
-        klicke oben auf <em>Input neu einlesen</em>.
-    </p>
+    <p>{{ t("gallery.empty") }}</p>
 </section>
 {% else %}
 <div class="gallery-grid">
@@ -19,15 +16,15 @@
     <a class="card" href="/pair/{{ record.pair_id }}">
         <div class="card-image">
             {% if record.output_path %}
-            <img src="/pair/{{ record.pair_id }}/image/front" alt="Vorderseite"
+            <img src="/pair/{{ record.pair_id }}/image/front" alt="{{ t('detail.front') }}"
                  loading="lazy">
             {% else %}
-            <div class="no-image">kein Bild</div>
+            <div class="no-image">{{ t("card.no_image") }}</div>
             {% endif %}
         </div>
         <div class="card-body">
-            {{ status_badge(record.status) }}
-            <p class="card-date">{{ record.date_iso or "kein Datum" }}</p>
+            {{ status_badge(record.status, t) }}
+            <p class="card-date">{{ record.date_iso or t("card.no_date") }}</p>
             {% if record.location %}<p class="card-location">{{ record.location }}</p>{% endif %}
             {% if record.event %}<p class="card-event">{{ record.event }}</p>{% endif %}
         </div>

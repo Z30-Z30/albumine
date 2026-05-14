@@ -7,16 +7,17 @@ AlbuMine verarbeitet Foto-Scans aus einem Watch-Folder. Kernfeature:
 mit Datum/Ort/Personen) — werden automatisch zu einer einzigen, mit Metadaten
 angereicherten Bilddatei zusammengeführt.
 
-> Status: **funktionsfähiges MVP.** Alle neun geplanten Phasen sind umgesetzt:
+> Status: **funktionsfähiges MVP.** Alle neun geplanten Phasen sind umgesetzt,
+> plus ein Web-Settings-Panel und mehrsprachige Oberfläche (16 Sprachen):
 > Ingest, Pair-Detection, Datum-Parsing, ExifTool-Metadaten, austauschbarer
 > Vision-LLM-Layer, End-to-End-Pipeline (CLI + ARQ-Worker), Web-UI,
 > Bildverbesserungs-Stufen und das Unraid-Deployment.
 
 ## Screenshots
 
-| Galerie | Detail & Korrektur | Status |
-|---------|--------------------|--------|
-| ![Galerie](images/albumine-gallery.png) | ![Detail](images/albumine-detail.png) | ![Status](images/albumine-status.png) |
+| Galerie | Detail & Korrektur | Status | Einstellungen |
+|---------|--------------------|--------|---------------|
+| ![Galerie](images/albumine-gallery.png) | ![Detail](images/albumine-detail.png) | ![Status](images/albumine-status.png) | ![Einstellungen](images/albumine-settings.png) |
 
 ## Features
 
@@ -25,6 +26,10 @@ angereicherten Bilddatei zusammengeführt.
 - Robustes Datum-Parsing für unvollständige Angaben („Sommer 1962", „ca. 1970")
 - Metadaten-Schreiben via ExifTool (EXIF/IPTC/XMP + eigener `albumine`-Namespace)
 - Web-UI: Galerie, manuelle Korrektur, Re-Processing, Status-Dashboard
+- **Web-Settings-Panel** — alle Einstellungen im Browser editierbar (DB-Overlay
+  über die ENV-Konfiguration), inkl. Secrets
+- **Mehrsprachige Oberfläche** — 16 Sprachen, im Settings-Panel umschaltbar;
+  neue Sprache = eine JSON-Datei
 - Bildverbesserungs-Stufen: `none` → `basic` (Farbe/Kontrast) → `enhance`
   (Real-ESRGAN) → `restore` (GFPGAN), mit Graceful Degradation
 - Resilienz: Tesseract-Fallback bei AI-Ausfall, Degraded-Modus ohne Redis
@@ -73,17 +78,25 @@ pytest              # Tests
 
 ## Konfiguration
 
-Alle Einstellungen kommen aus Environment-Variablen (Präfix `ALBUMINE_`).
-Siehe [`config.py`](../src/albumine/config.py) für die vollständige Liste.
-Wichtige Variablen:
+Die **Basiskonfiguration** kommt aus Environment-Variablen (Präfix
+`ALBUMINE_`). Siehe [`config.py`](../src/albumine/config.py) für die
+vollständige Liste. Wichtige Variablen:
 
 | Variable                  | Default                  | Bedeutung                          |
 |---------------------------|--------------------------|------------------------------------|
 | `ALBUMINE_WEBUI_PORT`     | `8765`                   | Port der Web-UI                    |
+| `ALBUMINE_UI_LANGUAGE`    | `de`                     | Start-Sprache der Oberfläche       |
 | `ALBUMINE_REDIS_URL`      | `redis://localhost:6379` | Redis für die ARQ-Queue            |
 | `ALBUMINE_AI_PROVIDER`    | `ollama`                 | `ollama` \| `anthropic` \| `openai_compat` |
 | `ALBUMINE_OLLAMA_HOST`    | `http://localhost:11434` | Ollama HTTP-API                    |
 | `PUID` / `PGID` / `UMASK` | `99` / `100` / `022`     | Unraid-Benutzer-Mapping            |
+
+Zur **Laufzeit** lassen sich (fast) alle Einstellungen im Web-Settings-Panel
+(`/settings`) ändern — diese Overrides werden in der SQLite-DB gespeichert und
+liegen über der ENV-Basis. Verhaltens-Einstellungen (Sprache, Bildverbesserung,
+JPEG-Qualität …) wirken sofort; AI-Provider, Pfade und Ports brauchen einen
+Container-Neustart (im Panel mit ⚠ markiert). `config_dir` ist bewusst nur per
+ENV setzbar — dort liegt die Datenbank selbst.
 
 ## Dokumentation
 

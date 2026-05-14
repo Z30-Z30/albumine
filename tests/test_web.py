@@ -179,3 +179,84 @@ def test_404_renders_styled_error_page(app_settings):
     assert response.status_code == 404
     assert "Fehler 404" in response.text
     assert "Zurück zur Galerie" in response.text
+
+
+# --- settings panel + i18n --------------------------------------------------
+
+
+def _settings_form(**overrides):
+    """Build a complete settings form payload from the defaults, then override."""
+    from albumine.config import Settings
+    from albumine.db.settings_store import EDITABLE_SETTINGS
+
+    defaults = Settings()
+    form: dict[str, str] = {}
+    for spec in EDITABLE_SETTINGS:
+        if spec.kind == "secret":
+            continue  # secrets: empty/absent means "keep current value"
+        value = getattr(defaults, spec.key)
+        if spec.kind == "bool":
+            if value:  # checkbox semantics: only present when checked
+                form[spec.key] = "on"
+        else:
+            form[spec.key] = "" if value is None else str(value)
+    for key, value in overrides.items():
+        if value is None:
+            form.pop(key, None)
+        else:
+            form[key] = value
+    return form
+
+
+def test_settings_page_renders(app_settings):
+    from fastapi.testclient import TestClient
+
+    with TestClient(create_app(app_settings)) as client:
+        response = client.get("/settings")
+    assert response.status_code == 200
+    assert "Einstellungen" in response.text
+    assert 'name="ui_language"' in response.text
+    assert 'name="jpeg_quality"' in response.text
+
+
+def test_settings_language_switch_changes_ui(app_settings):
+    from fastapi.testclient import TestClient
+
+    app = create_app(app_settings)
+    with TestClient(app) as client:
+        # Default is German.
+        assert "Galerie" in client.get("/").text
+        # Switch the UI language to English and persist it.
+        saved = client.post("/settings", data=_settings_form(ui_language="en"))
+        assert saved.status_code == 200
+        # The whole UI now renders in English.
+        gallery = client.get("/")
+    assert "Gallery" in gallery.text
+    assert "Galerie" not in gallery.text
+
+
+def test_settings_invalid_value_is_rejected(app_settings):
+    from fastapi.testclient import TestClient
+
+    app = create_app(app_settings)
+    with TestClient(app) as client:
+        response = client.post("/settings", data=_settings_form(jpeg_quality="9999"))
+        assert response.status_code == 200
+        assert "flash-error" in response.text
+        # The bad value must not have been persisted.
+        with app.state.session_factory() as session:
+            from albumine.db import AppSetting
+
+            assert session.get(AppSetting, "jpeg_quality") is None
+
+
+def test_settings_persist_behaviour_override(app_settings):
+    from fastapi.testclient import TestClient
+
+    app = create_app(app_settings)
+    with TestClient(app) as client:
+        client.post("/settings", data=_settings_form(jpeg_quality="65"))
+        with app.state.session_factory() as session:
+            from albumine.db import AppSetting
+
+            assert session.get(AppSetting, "jpeg_quality").value == "65"

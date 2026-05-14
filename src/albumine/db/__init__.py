@@ -6,9 +6,10 @@ from albumine.db.engine import (
     init_db,
     make_session_factory,
 )
-from albumine.db.models import ScanRecord, ScanStatus
+from albumine.db.models import AppSetting, ScanRecord, ScanStatus
 
 __all__ = [
+    "AppSetting",
     "ScanRecord",
     "ScanStatus",
     "SessionFactory",

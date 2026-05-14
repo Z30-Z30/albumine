@@ -24,10 +24,11 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from albumine.ai import build_provider
-from albumine.api import actions, gallery, status
+from albumine.api import actions, gallery, settings_panel, status
 from albumine.api.deps import templates
 from albumine.config import Settings, get_settings
 from albumine.db import create_db_engine, init_db, make_session_factory
+from albumine.db.settings_store import effective_settings
 from albumine.ingest import FolderWatcher
 from albumine.logging import configure_logging, get_logger
 from albumine.pipeline import Pipeline
@@ -39,19 +40,27 @@ _log = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Open shared resources on startup and release them on shutdown."""
-    settings: Settings = app.state.settings
-    configure_logging(level=settings.log_level, json_output=settings.log_json)
-    for directory in (settings.input_dir, settings.output_dir, settings.config_dir):
-        directory.mkdir(parents=True, exist_ok=True)
+    base: Settings = app.state.settings
 
-    engine = create_db_engine(settings.database_url)
+    # The database lives under the (env-only) config_dir; open it first, then
+    # resolve the effective settings (env + DB overrides) for everything else.
+    base.config_dir.mkdir(parents=True, exist_ok=True)
+    engine = create_db_engine(base.database_url)
     init_db(engine)
     session_factory = make_session_factory(engine)
+    settings = effective_settings(base, session_factory)
+
+    configure_logging(level=settings.log_level, json_output=settings.log_json)
+    for directory in (settings.input_dir, settings.output_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
     provider = build_provider(settings)
 
     app.state.session_factory = session_factory
     app.state.provider = provider
-    app.state.pipeline = Pipeline(settings, provider, session_factory)
+    # The Pipeline keeps the *base* settings and re-resolves overrides per job,
+    # so behaviour changes from the settings panel apply without a restart.
+    app.state.pipeline = Pipeline(base, provider, session_factory)
     app.state.redis = await _connect_redis(settings)
     app.state.watcher = _start_watcher(settings, app.state.redis)
 
@@ -59,6 +68,7 @@ async def lifespan(app: FastAPI):
         "albumine.startup",
         version=app.version,
         ai_provider=settings.ai_provider,
+        ui_language=settings.ui_language,
         redis=app.state.redis is not None,
         watcher=app.state.watcher is not None,
     )
@@ -154,13 +164,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return templates.TemplateResponse(
             request,
             "error.html",
-            {"status_code": 500, "detail": "Interner Serverfehler."},
+            {"status_code": 500, "detail": "error.internal"},
             status_code=500,
         )
 
     app.include_router(gallery.router)
     app.include_router(actions.router)
     app.include_router(status.router)
+    app.include_router(settings_panel.router)
     return app
 
 
@@ -171,7 +182,12 @@ def run() -> None:
     """Console-script entrypoint: serve the app with uvicorn."""
     import uvicorn
 
-    settings = get_settings()
+    base = get_settings()
+    # Honour a host/port override from the settings panel (restart-required).
+    base.config_dir.mkdir(parents=True, exist_ok=True)
+    engine = create_db_engine(base.database_url)
+    init_db(engine)
+    settings = effective_settings(base, make_session_factory(engine))
     uvicorn.run(
         "albumine.main:app",
         host=settings.webui_host,

@@ -119,6 +119,12 @@ class Settings(BaseSettings):
         default="", description="Extra CLI args for GFPGAN, appended after -i/-o."
     )
 
+    # --- User interface ----------------------------------------------------
+    ui_language: str = Field(
+        default="de",
+        description="UI language code (e.g. 'de', 'en'); overridable in the settings panel.",
+    )
+
     # --- Logging -----------------------------------------------------------
     log_level: str = Field(default="INFO", description="Root log level.")
     log_json: bool = Field(default=True, description="Emit structured JSON logs.")

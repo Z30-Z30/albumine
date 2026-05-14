@@ -4,73 +4,73 @@
 {% block title %}AlbuMine — {{ record.pair_id }}{% endblock %}
 
 {% block content %}
-<p><a href="/">&larr; Zurück zur Galerie</a></p>
+<p><a href="/">&larr; {{ t("detail.back_to_gallery") }}</a></p>
 
 <div class="detail-header">
-    <h2>Paar {{ record.pair_id }}</h2>
-    {{ status_badge(record.status) }}
+    <h2>{{ t("detail.pair", id=record.pair_id) }}</h2>
+    {{ status_badge(record.status, t) }}
 </div>
 
 {% if record.review_note %}
 <p class="flash flash-warn">{{ record.review_note }}</p>
 {% endif %}
 {% if record.error %}
-<p class="flash flash-error">Fehler: {{ record.error }}</p>
+<p class="flash flash-error">{{ t("detail.error", message=record.error) }}</p>
 {% endif %}
 
 <div class="detail-images">
     <figure>
-        <figcaption>Vorderseite</figcaption>
+        <figcaption>{{ t("detail.front") }}</figcaption>
         {% if record.output_path %}
-        <img src="/pair/{{ record.pair_id }}/image/front" alt="Vorderseite">
+        <img src="/pair/{{ record.pair_id }}/image/front" alt="{{ t('detail.front') }}">
         {% else %}
-        <div class="no-image">noch nicht verarbeitet</div>
+        <div class="no-image">{{ t("detail.not_processed") }}</div>
         {% endif %}
     </figure>
     <figure>
-        <figcaption>Rückseite</figcaption>
+        <figcaption>{{ t("detail.back") }}</figcaption>
         {% if record.back_path %}
-        <img src="/pair/{{ record.pair_id }}/image/back" alt="Rückseite">
+        <img src="/pair/{{ record.pair_id }}/image/back" alt="{{ t('detail.back') }}">
         {% else %}
-        <div class="no-image">keine Rückseite</div>
+        <div class="no-image">{{ t("detail.no_back") }}</div>
         {% endif %}
     </figure>
 </div>
 
 <section class="detail-section">
-    <h3>Extrahierte Daten</h3>
+    <h3>{{ t("detail.extracted_data") }}</h3>
     {% include "_correction_form.html" %}
 </section>
 
 <section class="detail-section">
-    <h3>Aktionen</h3>
+    <h3>{{ t("detail.actions") }}</h3>
     <form class="reprocess-form" hx-post="/pair/{{ record.pair_id }}/reprocess"
           hx-target="#reprocess-flash" hx-swap="innerHTML">
         <label>
-            Bildverbesserung
+            {{ t("form.enhancement") }}
             <select name="enhancement_level">
-                <option value="">Standard</option>
-                <option value="none">none — nur Crop/Deskew</option>
-                <option value="basic">basic — Farbe, Kontrast, Entrauschen</option>
-                <option value="enhance">enhance — + Upscaling (Real-ESRGAN)</option>
-                <option value="restore">restore — + Gesichts-Restauration (GFPGAN)</option>
+                <option value="">{{ t("enh.default") }}</option>
+                <option value="none">{{ t("enh.none") }}</option>
+                <option value="basic">{{ t("enh.basic") }}</option>
+                <option value="enhance">{{ t("enh.enhance") }}</option>
+                <option value="restore">{{ t("enh.restore") }}</option>
             </select>
         </label>
-        <button type="submit">Neu verarbeiten (AI + Bildverbesserung erneut anwenden)</button>
+        <button type="submit">{{ t("detail.reprocess") }}</button>
     </form>
     <span id="reprocess-flash"></span>
 </section>
 
 <section class="detail-section provenance">
-    <h3>Verarbeitungs-Historie</h3>
+    <h3>{{ t("detail.history") }}</h3>
     <dl>
-        <dt>Erkennungsmethode</dt><dd>{{ record.detection_method }}</dd>
-        <dt>AI-Provider</dt><dd>{{ record.ai_provider or "—" }}{% if record.ai_model %} ({{ record.ai_model }}){% endif %}</dd>
-        <dt>Bildverbesserung</dt><dd>{{ record.enhancement_level }}</dd>
-        <dt>Tesseract-Fallback</dt><dd>{{ "ja" if record.extraction_fallback else "nein" }}</dd>
-        <dt>Quelldateien</dt><dd>{{ record.source_files | join(", ") }}</dd>
-        <dt>Ausgabe</dt><dd>{{ record.output_path or "—" }}</dd>
-        <dt>Zuletzt aktualisiert</dt><dd>{{ record.updated_at.strftime("%Y-%m-%d %H:%M") }}</dd>
+        <dt>{{ t("field.detection_method") }}</dt><dd>{{ record.detection_method }}</dd>
+        <dt>{{ t("field.ai_provider") }}</dt><dd>{{ record.ai_provider or t("common.none") }}{% if record.ai_model %} ({{ record.ai_model }}){% endif %}</dd>
+        <dt>{{ t("field.enhancement") }}</dt><dd>{{ record.enhancement_level }}</dd>
+        <dt>{{ t("field.tesseract_fallback") }}</dt><dd>{{ t("common.yes") if record.extraction_fallback else t("common.no") }}</dd>
+        <dt>{{ t("field.source_files") }}</dt><dd>{{ record.source_files | join(", ") }}</dd>
+        <dt>{{ t("field.output") }}</dt><dd>{{ record.output_path or t("common.none") }}</dd>
+        <dt>{{ t("field.updated_at") }}</dt><dd>{{ record.updated_at.strftime("%Y-%m-%d %H:%M") }}</dd>
     </dl>
 </section>
 {% endblock %}

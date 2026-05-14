@@ -100,3 +100,19 @@ class ScanRecord(SQLModel, table=True):
     def touch(self) -> None:
         """Bump ``updated_at`` to now."""
         self.updated_at = _utcnow()
+
+
+class AppSetting(SQLModel, table=True):
+    """A single runtime configuration override.
+
+    The application's base configuration comes from environment variables
+    (:class:`albumine.config.Settings`). Rows in this table override individual
+    fields at runtime — that is what the web settings panel writes to. Values
+    are stored as strings and parsed back onto the typed Settings model.
+    """
+
+    __tablename__ = "app_settings"
+
+    key: str = Field(primary_key=True)
+    value: str = ""
+    updated_at: datetime = Field(default_factory=_utcnow)

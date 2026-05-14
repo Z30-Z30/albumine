@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{ lang }}" dir="{{ text_dir }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,12 +15,13 @@
             AlbuMine
         </a>
         <nav>
-            <a href="/">Galerie</a>
-            <a href="/status">Status</a>
+            <a href="/">{{ t("nav.gallery") }}</a>
+            <a href="/status">{{ t("nav.status") }}</a>
+            <a href="/settings">{{ t("nav.settings") }}</a>
         </nav>
         <div class="header-action">
             <button hx-post="/rescan" hx-target="#header-flash" hx-swap="innerHTML">
-                Input neu einlesen
+                {{ t("action.rescan") }}
             </button>
             <span id="header-flash"></span>
         </div>
@@ -29,7 +30,7 @@
         {% block content %}{% endblock %}
     </main>
     <footer>
-        <small>AlbuMine v{{ request.app.version }}</small>
+        <small>{{ t("footer.version", version=request.app.version) }}</small>
     </footer>
 </body>
 </html>
