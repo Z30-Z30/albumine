@@ -7,9 +7,9 @@ AlbuMine verarbeitet Foto-Scans aus einem Watch-Folder. Kernfeature:
 mit Datum/Ort/Personen) — werden automatisch zu einer einzigen, mit Metadaten
 angereicherten Bilddatei zusammengeführt.
 
-> Status: **Phase 5 – End-to-End-Pipeline.** Die komplette Verarbeitungskette
-> (Ingest → Front-Processing → AI-Extraktion → Metadaten → SQLite) läuft, per
-> CLI und als ARQ-Worker. Web-UI folgt als nächstes.
+> Status: **Phase 6 – Web-UI.** Galerie, Detail-Ansicht mit manueller
+> Korrektur, Re-Processing und Status-Dashboard stehen (HTMX + Jinja2). Die
+> Bildverbesserungs-Stufen (Upscaling, Restauration) folgen als nächstes.
 
 ## Features (Zielbild)
 
@@ -38,10 +38,10 @@ angereicherten Bilddatei zusammengeführt.
 Voraussetzung: Docker + Docker Compose.
 
 ```bash
-# Stack bauen und starten (App + Redis)
+# Stack bauen und starten (Web-App + ARQ-Worker + Redis)
 docker compose up --build
 
-# Web-UI: http://localhost:8765
+# Web-UI: http://localhost:8765        (Galerie, Korrektur, Status)
 # Healthcheck: http://localhost:8765/healthz
 ```
 

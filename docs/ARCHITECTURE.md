@@ -190,3 +190,36 @@ extract_back     ├─► reconcile_date ─► PhotoMetadata ─► write_meta
 Beide nutzen dieselbe `Pipeline`. Der Worker enqueued Process-Jobs mit einer
 `pair_id`-basierten Job-ID — doppelte Jobs für dasselbe Pair werden auf
 Queue-Ebene verworfen.
+
+## Web-UI (Phase 6)
+
+FastAPI + HTMX + Jinja2. Die Web-App **verarbeitet nicht selbst** — sie liest
+aus der DB und reiht Jobs in die ARQ-Queue ein; die Arbeit macht der Worker.
+
+| Route                          | Zweck                                            |
+|--------------------------------|--------------------------------------------------|
+| `GET /`                        | Galerie aller Scan-Paare                         |
+| `GET /pair/{id}`               | Detail: Front/Back-Bild + Korrektur-Formular     |
+| `GET /pair/{id}/image/{side}`  | Bild ausliefern (Front = Output, Back = Quelle)  |
+| `POST /pair/{id}/correct`      | manuelle Korrektur → DB + Metadaten neu schreiben |
+| `POST /pair/{id}/reprocess`    | erzwungenes Re-Processing einreihen              |
+| `POST /rescan`                 | Input-Ordner neu einlesen                        |
+| `GET /status` + `/status/ai-health` | Status-Dashboard (Queue, Fehler, AI-Health) |
+
+Module: `api/deps.py` (geteilte Dependencies + Templates), `api/gallery.py`,
+`api/actions.py`, `api/status.py`. Die App-weiten Objekte (DB-Session-Factory,
+Pipeline, Redis-Pool, AI-Provider, Watcher) werden einmalig im
+`main.py:lifespan` erstellt und auf `app.state` abgelegt.
+
+**Manuelle Korrektur:** `Pipeline.apply_manual_correction` aktualisiert die
+DB-Felder, re-parsed den Datums-Freitext und schreibt die Metadaten *in das
+bestehende Output-Bild* zurück — ohne AI oder Front-Processing erneut zu
+laufen. Re-Processing dagegen läuft die volle Pipeline (inkl. AI) neu.
+
+**Watch-Folder-Integration:** Der `FolderWatcher` (im `lifespan` gestartet)
+reiht bei Änderungen einen `scan_input_task` in die Queue ein.
+
+**Resilienz:** Redis ist optional. Ist es offline, läuft die App im
+Degraded-Modus weiter — Galerie und Korrekturen funktionieren, nur die
+Queue-Aktionen (Re-Processing, Rescan) melden „Redis offline". htmx ist lokal
+gebündelt (`static/htmx.min.js`), kein CDN-Zugriff nötig.

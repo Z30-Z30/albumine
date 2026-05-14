@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge %}
+
+{% block title %}AlbuMine — Status{% endblock %}
+
+{% block content %}
+<h2>Status</h2>
+
+<section class="detail-section">
+    <h3>Verarbeitung</h3>
+    <div class="status-counts">
+        {% for status, count in status_counts.items() %}
+        <div class="status-count">
+            {{ status_badge(status) }}
+            <span class="count">{{ count }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="detail-section">
+    <h3>Queue</h3>
+    {% if redis_online %}
+    <p>{{ queue_depth if queue_depth is not none else "?" }} Job(s) in der Warteschlange.</p>
+    {% else %}
+    <p class="flash flash-error">Redis ist offline — die Verarbeitungs-Queue ist nicht verfügbar.</p>
+    {% endif %}
+</section>
+
+<section class="detail-section">
+    <h3>AI-Backend</h3>
+    <div hx-get="/status/ai-health" hx-trigger="load" hx-swap="innerHTML">
+        <small>prüfe …</small>
+    </div>
+</section>
+
+<section class="detail-section">
+    <h3>Letzte Fehler</h3>
+    {% if not failures %}
+    <p>Keine Fehler.</p>
+    {% else %}
+    <ul class="failure-list">
+        {% for record in failures %}
+        <li>
+            <a href="/pair/{{ record.pair_id }}">{{ record.pair_id }}</a>
+            — {{ record.error }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</section>
+{% endblock %}

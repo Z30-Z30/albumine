@@ -1,0 +1,44 @@
+<form id="correction-form" class="correction-form"
+      hx-post="/pair/{{ record.pair_id }}/correct"
+      hx-target="#correction-form" hx-swap="outerHTML">
+
+    {% if flash %}
+    <p class="flash flash-{{ flash[0] }}">{{ flash[1] }}</p>
+    {% endif %}
+
+    <label>
+        Rohtext (Transkription der Rückseite)
+        <textarea name="raw_text" rows="3">{{ record.raw_text or "" }}</textarea>
+    </label>
+
+    <label>
+        Datum (Freitext, z. B. „Mai 1973", „Sommer 1962")
+        <input type="text" name="date_text" value="{{ record.date_original_text or '' }}">
+        <small>
+            Erkannt: {{ record.date_iso or "—" }}
+            {% if record.date_confidence %}(Confidence: {{ record.date_confidence }}){% endif %}
+        </small>
+    </label>
+
+    <label>
+        Ort
+        <input type="text" name="location" value="{{ record.location or '' }}">
+    </label>
+
+    <label>
+        Personen (kommagetrennt)
+        <input type="text" name="people" value="{{ record.people | join(', ') }}">
+    </label>
+
+    <label>
+        Anlass
+        <input type="text" name="event" value="{{ record.event or '' }}">
+    </label>
+
+    <label>
+        Notizen
+        <textarea name="notes" rows="2">{{ record.notes or "" }}</textarea>
+    </label>
+
+    <button type="submit">Korrektur speichern</button>
+</form>

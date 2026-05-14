@@ -28,11 +28,17 @@ from albumine.pipeline import Pipeline
 _log = get_logger(__name__)
 
 
-async def process_pair_task(ctx: dict[str, Any], pair_data: dict[str, Any]) -> dict[str, str]:
-    """Process one serialised :class:`ScanPair` through the pipeline."""
+async def process_pair_task(
+    ctx: dict[str, Any], pair_data: dict[str, Any], *, force: bool = False
+) -> dict[str, str]:
+    """Process one serialised :class:`ScanPair` through the pipeline.
+
+    ``force=True`` re-processes a pair even if it is already ``DONE`` (used by
+    the web UI's re-processing action).
+    """
     pipeline: Pipeline = ctx["pipeline"]
     pair = ScanPair.from_dict(pair_data)
-    result = await pipeline.process_pair(pair)
+    result = await pipeline.process_pair(pair, force=force)
     return {"pair_id": result.pair_id, "status": str(result.status)}
 
 

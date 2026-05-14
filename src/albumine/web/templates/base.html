@@ -4,21 +4,28 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}AlbuMine{% endblock %}</title>
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="/static/htmx.min.js"></script>
     <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
     <header>
-        <h1>AlbuMine</h1>
+        <a href="/" class="brand">AlbuMine</a>
         <nav>
             <a href="/">Galerie</a>
+            <a href="/status">Status</a>
         </nav>
+        <div class="header-action">
+            <button hx-post="/rescan" hx-target="#header-flash" hx-swap="innerHTML">
+                Input neu einlesen
+            </button>
+            <span id="header-flash"></span>
+        </div>
     </header>
     <main>
         {% block content %}{% endblock %}
     </main>
     <footer>
-        <small>AlbuMine v{{ version }}</small>
+        <small>AlbuMine v{{ request.app.version }}</small>
     </footer>
 </body>
 </html>

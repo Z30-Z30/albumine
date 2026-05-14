@@ -24,3 +24,8 @@ data/
 *.swp
 .idea/
 .vscode/
+
+# Stray binaries / installers (not project artefacts)
+*.dmg
+*.iso
+

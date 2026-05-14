@@ -24,6 +24,7 @@ from albumine.config import Settings
 from albumine.db import ScanRecord, ScanStatus
 from albumine.db.engine import SessionFactory
 from albumine.ingest import ScanPair, scan_directory
+from albumine.ingest.models import DetectionMethod, PageRef
 from albumine.logging import get_logger
 from albumine.parsing.date_parser import (
     DatePrecision,
@@ -78,6 +79,28 @@ def _default_metadata_writer(
     image_path: Path, metadata: PhotoMetadata, sidecar: bool
 ) -> None:
     write_metadata(image_path, metadata, sidecar=sidecar)
+
+
+def pair_from_record(record: ScanRecord) -> ScanPair:
+    """Reconstruct the :class:`ScanPair` a :class:`ScanRecord` was derived from.
+
+    Used to re-process a pair from the web UI without re-running detection.
+    """
+    front = PageRef(Path(record.front_path), record.front_page_index)
+    back = (
+        PageRef(Path(record.back_path), record.back_page_index)
+        if record.back_path
+        else None
+    )
+    return ScanPair(
+        pair_id=record.pair_id,
+        front=front,
+        back=back,
+        method=DetectionMethod(record.detection_method),
+        source_files=tuple(Path(p) for p in record.source_files),
+        needs_review=record.needs_review,
+        note=record.review_note,
+    )
 
 
 class Pipeline:
@@ -189,7 +212,9 @@ class Pipeline:
         has_date = parsed_date.precision is not DatePrecision.NONE
         return PhotoMetadata(
             raw_text=extraction.raw_text or None,
-            description=_compose_description(extraction),
+            description=_compose_description(
+                extraction.event, extraction.location, extraction.people, extraction.notes
+            ),
             location=extraction.location,
             people=list(extraction.people),
             event=extraction.event,
@@ -198,6 +223,79 @@ class Pipeline:
             ai_provider="tesseract" if used_fallback else self._provider.name,
             ai_model=None if used_fallback else self._provider.model,
             source_files=[str(p) for p in pair.source_files],
+        )
+
+    def apply_manual_correction(
+        self,
+        pair_id: str,
+        *,
+        raw_text: str,
+        date_text: str,
+        location: str,
+        people: list[str],
+        event: str,
+        notes: str,
+    ) -> ScanRecord | None:
+        """Apply human corrections to a record and re-write the image metadata.
+
+        Does not re-run the AI or front processing — it just updates the stored
+        fields, re-parses the (possibly corrected) date text, and writes the
+        result back into the existing output image. The pair is marked ``DONE``
+        (a human has reviewed it).
+
+        Returns the updated record, or ``None`` if there is no such record or it
+        has no output image yet.
+
+        Raises:
+            ExifToolError: If re-writing the image metadata fails.
+        """
+        with self._session_factory() as session:
+            record = session.get(ScanRecord, pair_id)
+            if record is None or not record.output_path:
+                return None
+
+            parsed_date = parse_date(date_text)
+            record.raw_text = raw_text.strip() or None
+            record.location = location.strip() or None
+            record.people = [p.strip() for p in people if p.strip()]
+            record.event = event.strip() or None
+            record.notes = notes.strip() or None
+            record.date_original_text = date_text.strip() or None
+            record.date_iso = parsed_date.iso
+            record.date_confidence = str(parsed_date.confidence)
+            record.date_precision = str(parsed_date.precision)
+            record.description = _compose_description(
+                record.event, record.location, record.people, record.notes
+            )
+            record.status = ScanStatus.DONE
+            record.error = None
+            record.touch()
+
+            metadata = self._metadata_from_record(record, parsed_date)
+            self._write_metadata(
+                Path(record.output_path), metadata, self._settings.write_sidecar
+            )
+
+            session.add(record)
+            session.commit()
+            session.refresh(record)
+            _log.info("pipeline.manual_correction", pair_id=pair_id)
+            return record
+
+    @staticmethod
+    def _metadata_from_record(record: ScanRecord, parsed_date: ParsedDate) -> PhotoMetadata:
+        has_date = parsed_date.precision is not DatePrecision.NONE
+        return PhotoMetadata(
+            raw_text=record.raw_text,
+            description=record.description,
+            location=record.location,
+            people=record.people,
+            event=record.event,
+            notes=record.notes,
+            date=parsed_date if has_date else None,
+            ai_provider=record.ai_provider,
+            ai_model=record.ai_model,
+            source_files=record.source_files,
         )
 
     # --- database bookkeeping ----------------------------------------------
@@ -285,20 +383,25 @@ class Pipeline:
         return self._settings.output_dir / f"{stem}.jpg"
 
 
-def _compose_description(extraction: BackExtraction) -> str | None:
+def _compose_description(
+    event: str | None,
+    location: str | None,
+    people: list[str],
+    notes: str | None,
+) -> str | None:
     """Build a short human-readable description from the structured fields."""
     pieces: list[str] = []
 
-    headline_parts = [extraction.event]
-    if extraction.location:
-        headline_parts.append(f"in {extraction.location}")
+    headline_parts = [event]
+    if location:
+        headline_parts.append(f"in {location}")
     headline = " ".join(part for part in headline_parts if part).strip()
     if headline:
         pieces.append(f"{headline}.")
 
-    if extraction.people:
-        pieces.append("Personen: " + ", ".join(extraction.people) + ".")
-    if extraction.notes:
-        pieces.append(extraction.notes)
+    if people:
+        pieces.append("Personen: " + ", ".join(people) + ".")
+    if notes:
+        pieces.append(notes)
 
     return " ".join(pieces) if pieces else None

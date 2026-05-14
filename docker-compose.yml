@@ -26,6 +26,29 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # ARQ worker: runs the image-processing pipeline off the queue.
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: albumine:dev
+    command: ["albumine-worker"]
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      UMASK: "022"
+      ALBUMINE_REDIS_URL: "redis://redis:6379"
+      ALBUMINE_LOG_JSON: "false"
+      # ALBUMINE_OLLAMA_HOST: "http://host.docker.internal:11434"
+    volumes:
+      - ./data/input:/input
+      - ./data/output:/output
+      - ./data/config:/config
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     command: ["redis-server", "--save", "", "--appendonly", "no"]

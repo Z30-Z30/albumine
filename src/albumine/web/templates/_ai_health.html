@@ -1,0 +1,5 @@
+<div class="ai-health {{ 'ok' if health.healthy else 'error' }}">
+    <strong>{{ health.provider }}</strong>
+    — {{ "erreichbar" if health.healthy else "nicht erreichbar" }}
+    <small>{{ health.detail }}</small>
+</div>
