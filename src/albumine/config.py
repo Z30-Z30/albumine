@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     redis_url: str = Field(
         default="redis://localhost:6379", description="Redis connection URL for the ARQ queue."
     )
+    redis_connect_retries: int = Field(
+        default=5,
+        ge=0,
+        description="Connection attempts before the web app gives up on Redis (degraded mode).",
+    )
 
     # --- AI backend --------------------------------------------------------
     ai_provider: AIProvider = Field(

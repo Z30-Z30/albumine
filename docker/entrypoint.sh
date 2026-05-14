@@ -26,5 +26,14 @@ for dir in /input /output /config; do
     fi
 done
 
+# supervisord (the all-in-one mode) must run as root so it can capture child
+# output to /dev/stdout; it drops each managed program to the unprivileged user
+# itself (see supervisord.conf 'user=' directives). Single-process commands
+# (used by docker-compose) are dropped to PUID:PGID directly.
+if [ "${1:-}" = "supervisord" ]; then
+    echo "[entrypoint] starting supervisord as root (programs run as ${RUN_USER})"
+    exec "$@"
+fi
+
 echo "[entrypoint] starting as ${RUN_USER} (PUID=${PUID} PGID=${PGID} UMASK=${UMASK})"
 exec gosu "${PUID}:${PGID}" "$@"

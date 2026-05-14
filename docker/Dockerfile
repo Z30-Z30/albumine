@@ -20,12 +20,16 @@ FROM python:3.12-slim AS runtime
 #   libimage-exiftool-perl  -> metadata writing (EXIF/IPTC/XMP)
 #   tesseract-ocr           -> OCR fallback for back-of-photo text
 #   poppler-utils           -> PDF -> image conversion (pdf2image)
+#   redis-server            -> ARQ queue broker (all-in-one container)
+#   supervisor              -> runs redis + worker + web in one container
 #   gosu                    -> drop privileges to PUID/PGID at entrypoint
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libimage-exiftool-perl \
         tesseract-ocr \
         tesseract-ocr-deu \
         poppler-utils \
+        redis-server \
+        supervisor \
         gosu \
         curl \
     && rm -rf /var/lib/apt/lists/*
@@ -36,6 +40,7 @@ COPY --from=builder /wheels /wheels
 RUN pip install --no-cache-dir /wheels/*.whl && rm -rf /wheels
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/supervisord.conf /etc/supervisor/albumine.conf
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Unraid / linuxserver.io conventions.
@@ -53,5 +58,7 @@ EXPOSE 8765
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -fsS "http://localhost:${ALBUMINE_WEBUI_PORT}/healthz" || exit 1
 
+# Default: all-in-one mode (Redis + ARQ worker + web app via supervisord) for a
+# one-click Unraid install. docker-compose overrides this per service.
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["albumine"]
+CMD ["supervisord", "-c", "/etc/supervisor/albumine.conf"]

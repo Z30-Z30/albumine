@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<!--
+  Unraid Community Applications template for AlbuMine.
+
+  Before publishing / using this template, replace the placeholder URLs marked
+  with CHANGEME:
+    * <Repository>        — the published image (e.g. ghcr.io/<you>/albumine:latest)
+    * <Support> / <Project> — your forum thread / repository
+    * <Icon>              — a hosted PNG icon URL
+  See docs/INSTALL-UNRAID.md for details.
+
+  This is the all-in-one container: it bundles Redis, the ARQ worker and the
+  web app, so no separate Redis container is required.
+-->
+<Container version="2">
+  <Name>AlbuMine</Name>
+  <Repository>CHANGEME/albumine:latest</Repository>
+  <Registry>https://hub.docker.com/r/CHANGEME/albumine</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>CHANGEME-forum-thread-url</Support>
+  <Project>CHANGEME-repository-url</Project>
+  <Overview>
+    AlbuMine digitalisiert und reichert alte Familienalben an. Es überwacht
+    einen Input-Ordner mit Foto-Scans und führt Duplex-Scans (Vorderseite =
+    Foto, Rückseite = handschriftliche Notiz) automatisch zu einer einzigen,
+    mit Metadaten angereicherten Bilddatei zusammen. Die Rückseite wird per
+    Vision-LLM (lokal über Ollama oder via Claude/OpenAI-kompatibel) gelesen,
+    Datum/Ort/Personen werden extrahiert und als EXIF/IPTC/XMP geschrieben.
+    Eine Web-UI bietet Galerie, manuelle Korrektur und Status-Dashboard.
+    Dieser Container ist self-contained (Redis + Worker + Web inklusive).
+  </Overview>
+  <Category>MediaApp:Photos Tools:</Category>
+  <WebUI>http://[IP]:[PORT:8765]/</WebUI>
+  <TemplateURL>CHANGEME-raw-url-to-this-template</TemplateURL>
+  <Icon>CHANGEME-hosted-icon-png-url</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Description>
+    Selbst-hostbare Web-App zur Digitalisierung und Anreicherung alter
+    Familienalben. Watch-Folder-Ingest, Pair-Detection, Vision-LLM-Extraktion
+    der Rückseiten, robustes Datum-Parsing, ExifTool-Metadaten und optionale
+    Bildverbesserung (Farbkorrektur, Real-ESRGAN-Upscaling, GFPGAN-Restauration).
+  </Description>
+
+  <!-- ============================ Ports ============================ -->
+  <Config Name="WebUI Port" Target="8765" Default="8765" Mode="tcp"
+          Description="Port der Web-UI." Type="Port" Display="always"
+          Required="true" Mask="false">8765</Config>
+
+  <!-- ============================ Paths ============================ -->
+  <Config Name="Input (Scans)" Target="/input"
+          Default="/mnt/user/scans/eingang/" Mode="rw"
+          Description="Watch-Folder: hier landen die Foto-Scans (Bilder oder PDFs)."
+          Type="Path" Display="always" Required="true" Mask="false">/mnt/user/scans/eingang/</Config>
+
+  <Config Name="Output (verarbeitete Bilder)" Target="/output"
+          Default="/mnt/user/fotos/album-digital/" Mode="rw"
+          Description="Verarbeitete Bilder mit eingebetteten Metadaten."
+          Type="Path" Display="always" Required="true" Mask="false">/mnt/user/fotos/album-digital/</Config>
+
+  <Config Name="Config (Datenbank, Logs)" Target="/config"
+          Default="/mnt/user/appdata/albumine/" Mode="rw"
+          Description="SQLite-Datenbank, Einstellungen und Logs."
+          Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/albumine/</Config>
+
+  <Config Name="Archiv (optional)" Target="/archive"
+          Default="" Mode="rw"
+          Description="Optional: Ablage für Original-PDFs nach der Verarbeitung."
+          Type="Path" Display="advanced" Required="false" Mask="false"/>
+
+  <!-- ===================== User / permissions ====================== -->
+  <Config Name="PUID" Target="PUID" Default="99" Mode=""
+          Description="User-ID, mit der der Container läuft (Unraid-Default: 99 = nobody)."
+          Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
+
+  <Config Name="PGID" Target="PGID" Default="100" Mode=""
+          Description="Group-ID, mit der der Container läuft (Unraid-Default: 100 = users)."
+          Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+
+  <Config Name="UMASK" Target="UMASK" Default="022" Mode=""
+          Description="umask für neu erstellte Dateien."
+          Type="Variable" Display="advanced" Required="false" Mask="false">022</Config>
+
+  <!-- ============================ AI ============================== -->
+  <Config Name="AI-Provider" Target="ALBUMINE_AI_PROVIDER" Default="ollama" Mode=""
+          Description="Vision-Backend für die Rückseiten-Erkennung: ollama | anthropic | openai_compat."
+          Type="Variable" Display="always" Required="false" Mask="false">ollama</Config>
+
+  <Config Name="Ollama Host" Target="ALBUMINE_OLLAMA_HOST"
+          Default="http://192.168.0.9:11434" Mode=""
+          Description="HTTP-Adresse des Ollama-Servers (z. B. ein anderer Unraid-Container)."
+          Type="Variable" Display="always" Required="false" Mask="false">http://192.168.0.9:11434</Config>
+
+  <Config Name="Ollama Vision-Modell" Target="ALBUMINE_OLLAMA_VISION_MODEL"
+          Default="llava" Mode=""
+          Description="Name des Ollama-Vision-Modells (z. B. llava, llama3.2-vision, minicpm-v)."
+          Type="Variable" Display="advanced" Required="false" Mask="false">llava</Config>
+
+  <Config Name="Anthropic API-Key" Target="ALBUMINE_ANTHROPIC_API_KEY"
+          Default="" Mode=""
+          Description="Nur nötig, wenn AI-Provider = anthropic. Achtung: Bilder werden an Anthropic gesendet."
+          Type="Variable" Display="advanced" Required="false" Mask="true"/>
+
+  <!-- ====================== Image enhancement ====================== -->
+  <Config Name="Bildverbesserungs-Stufe" Target="ALBUMINE_DEFAULT_ENHANCEMENT_LEVEL"
+          Default="basic" Mode=""
+          Description="Standard-Stufe: none | basic | enhance | restore. 'enhance'/'restore' brauchen externe Tools (siehe Doku)."
+          Type="Variable" Display="always" Required="false" Mask="false">basic</Config>
+
+  <Config Name="Real-ESRGAN Binary" Target="ALBUMINE_REALESRGAN_BIN"
+          Default="" Mode=""
+          Description="Optional: Pfad zur Real-ESRGAN-CLI im Container (aktiviert die 'enhance'-Stufe)."
+          Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <Config Name="GFPGAN Binary" Target="ALBUMINE_GFPGAN_BIN"
+          Default="" Mode=""
+          Description="Optional: Pfad zur GFPGAN-CLI im Container (aktiviert die 'restore'-Stufe)."
+          Type="Variable" Display="advanced" Required="false" Mask="false"/>
+
+  <!-- ========================== Logging ============================ -->
+  <Config Name="Logs als JSON" Target="ALBUMINE_LOG_JSON" Default="true" Mode=""
+          Description="true = strukturierte JSON-Logs, false = lesbare Logs."
+          Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+
+  <Config Name="Log-Level" Target="ALBUMINE_LOG_LEVEL" Default="INFO" Mode=""
+          Description="Log-Level: DEBUG | INFO | WARNING | ERROR."
+          Type="Variable" Display="advanced" Required="false" Mask="false">INFO</Config>
+</Container>

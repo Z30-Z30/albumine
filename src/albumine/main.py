@@ -76,8 +76,8 @@ async def _connect_redis(settings: Settings):
     not slow startup down.
     """
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
-    redis_settings.conn_retries = 1
-    redis_settings.conn_retry_delay = 0.2
+    redis_settings.conn_retries = settings.redis_connect_retries
+    redis_settings.conn_retry_delay = 0.5
     try:
         pool = await create_pool(redis_settings)
         _log.info("redis.connected", url=settings.redis_url)

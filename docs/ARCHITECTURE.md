@@ -250,3 +250,23 @@ in `ScanRecord.enhancement_level` und im XMP-`albumine`-Namespace.
 Die Stufe ist pro Foto wählbar: das Detail-UI bietet sie beim Re-Processing an,
 die CLI über `albumine-cli scan --level <stufe>`, der globale Default kommt aus
 `ALBUMINE_DEFAULT_ENHANCEMENT_LEVEL`.
+
+## Deployment (Phase 8)
+
+Es gibt zwei Betriebsarten desselben Images:
+
+**All-in-one (Default, für Unraid):** `supervisord` startet Redis, den
+ARQ-Worker und die Web-App in *einem* Container — ein-Klick-Installation, kein
+separater Redis-Container nötig. supervisord läuft als root und droppt jeden
+Prozess via `user=albumine` auf den unprivilegierten Benutzer (aus PUID/PGID).
+`docker/Dockerfile` `CMD` ist dieser Modus.
+
+**Getrennte Services (für die lokale Entwicklung):** `docker-compose.yml`
+überschreibt `command:` pro Service und fährt App, Worker und Redis als drei
+separate Container hoch.
+
+`unraid/albumine.xml` ist das Community-Applications-Template — Volumes
+(`/input`, `/output`, `/config`, optional `/archive`), alle ENV-Variablen,
+WebUI-Port und Kategorie `MediaApp:Photos Tools:`. Die Web-App verbindet sich
+mit konfigurierbarer Retry-Zahl (`ALBUMINE_REDIS_CONNECT_RETRIES`) zu Redis und
+läuft ohne Redis im Degraded-Modus weiter. Details: `docs/INSTALL-UNRAID.md`.

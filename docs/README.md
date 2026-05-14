@@ -7,9 +7,9 @@ AlbuMine verarbeitet Foto-Scans aus einem Watch-Folder. Kernfeature:
 mit Datum/Ort/Personen) — werden automatisch zu einer einzigen, mit Metadaten
 angereicherten Bilddatei zusammengeführt.
 
-> Status: **Phase 7 – Enhancement-Pipeline.** Bildverbesserungs-Stufen
-> (`basic` Farb-/Kontrastkorrektur, `enhance` Real-ESRGAN-Upscaling, `restore`
-> GFPGAN-Restauration) stehen. Als nächstes: Unraid-Template + Doku.
+> Status: **Phase 8 – Unraid-Deployment.** Self-contained All-in-one-Container
+> (Redis + Worker + Web), Community-Applications-Template und Installations-
+> Doku stehen. Als nächstes: Polishing.
 
 ## Features (Zielbild)
 
@@ -38,12 +38,17 @@ angereicherten Bilddatei zusammengeführt.
 Voraussetzung: Docker + Docker Compose.
 
 ```bash
-# Stack bauen und starten (Web-App + ARQ-Worker + Redis)
+# Stack bauen und starten (Web-App + ARQ-Worker + Redis als getrennte Services)
 docker compose up --build
 
 # Web-UI: http://localhost:8765        (Galerie, Korrektur, Status)
 # Healthcheck: http://localhost:8765/healthz
 ```
+
+Für Unraid / Single-Container-Betrieb bringt das Image einen **All-in-one-Modus**
+mit (Redis + Worker + Web via supervisord in *einem* Container) — siehe
+[INSTALL-UNRAID.md](INSTALL-UNRAID.md). `docker compose` überschreibt das pro
+Service und nutzt stattdessen die getrennten Prozesse.
 
 Ohne Container, direkt mit Python:
 

@@ -15,6 +15,8 @@ _tmp = tempfile.mkdtemp(prefix="albumine-test-")
 os.environ.setdefault("ALBUMINE_INPUT_DIR", os.path.join(_tmp, "input"))
 os.environ.setdefault("ALBUMINE_OUTPUT_DIR", os.path.join(_tmp, "output"))
 os.environ.setdefault("ALBUMINE_CONFIG_DIR", os.path.join(_tmp, "config"))
+# Tests run without Redis — fail fast instead of retrying for seconds.
+os.environ.setdefault("ALBUMINE_REDIS_CONNECT_RETRIES", "1")
 
 
 @pytest.fixture
