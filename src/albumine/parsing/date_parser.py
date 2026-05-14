@@ -54,6 +54,11 @@ def _cap(confidence: Confidence, ceiling: Confidence) -> Confidence:
     return ceiling
 
 
+def weakest_confidence(*values: Confidence) -> Confidence:
+    """Return the lowest confidence among ``values`` (e.g. to combine signals)."""
+    return min(values, key=lambda value: _CONFIDENCE_RANK[value])
+
+
 @dataclass(frozen=True)
 class ParsedDate:
     """The structured result of parsing a free-text date.

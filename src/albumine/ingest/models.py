@@ -47,6 +47,19 @@ class PageRef:
             return self.path.name
         return f"{self.path.name}#p{self.page_index + 1}"
 
+    def as_dict(self) -> dict[str, object]:
+        """Plain-dict form for serialisation (e.g. across the task queue)."""
+        return {"path": str(self.path), "page_index": self.page_index}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> PageRef:
+        """Inverse of :meth:`as_dict`."""
+        page_index = data["page_index"]
+        return cls(
+            path=Path(str(data["path"])),
+            page_index=int(page_index) if page_index is not None else None,
+        )
+
 
 @dataclass
 class ScanPair:
@@ -71,3 +84,29 @@ class ScanPair:
     source_files: tuple[Path, ...]
     needs_review: bool = False
     note: str | None = None
+
+    def as_dict(self) -> dict[str, object]:
+        """Plain-dict form for serialisation (e.g. across the ARQ task queue)."""
+        return {
+            "pair_id": self.pair_id,
+            "front": self.front.as_dict(),
+            "back": self.back.as_dict() if self.back is not None else None,
+            "method": str(self.method),
+            "source_files": [str(p) for p in self.source_files],
+            "needs_review": self.needs_review,
+            "note": self.note,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> ScanPair:
+        """Inverse of :meth:`as_dict`."""
+        back = data["back"]
+        return cls(
+            pair_id=str(data["pair_id"]),
+            front=PageRef.from_dict(data["front"]),  # type: ignore[arg-type]
+            back=PageRef.from_dict(back) if back is not None else None,  # type: ignore[arg-type]
+            method=DetectionMethod(data["method"]),
+            source_files=tuple(Path(p) for p in data["source_files"]),  # type: ignore[union-attr]
+            needs_review=bool(data["needs_review"]),
+            note=data["note"],  # type: ignore[arg-type]
+        )

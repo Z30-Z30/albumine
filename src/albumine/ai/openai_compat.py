@@ -45,7 +45,7 @@ class OpenAICompatProvider(VisionProvider):
         timeout: float = _DEFAULT_TIMEOUT,
     ) -> None:
         self._base_url = base_url.rstrip("/")
-        self._model = model
+        self.model = model
         self._api_key = api_key
         self._client = client or httpx.AsyncClient(timeout=timeout)
         self._owns_client = client is None
@@ -72,7 +72,7 @@ class OpenAICompatProvider(VisionProvider):
             ) from exc
         if not content:
             raise AIProviderError("OpenAI-compatible endpoint returned empty content")
-        _log.info("openai_compat.extracted", model=self._model)
+        _log.info("openai_compat.extracted", model=self.model)
         return BackExtraction.from_raw_json(content)
 
     async def health_check(self) -> ProviderHealth:
@@ -99,7 +99,7 @@ class OpenAICompatProvider(VisionProvider):
     def _build_payload(self, image: bytes, mime_type: str) -> dict[str, Any]:
         data_url = f"data:{mime_type};base64,{base64.b64encode(image).decode('ascii')}"
         return {
-            "model": self._model,
+            "model": self.model,
             "response_format": build_openai_response_format(),
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},

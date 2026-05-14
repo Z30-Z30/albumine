@@ -43,7 +43,7 @@ class OllamaProvider(VisionProvider):
         timeout: float = _DEFAULT_TIMEOUT,
     ) -> None:
         self._host = host.rstrip("/")
-        self._model = model
+        self.model = model
         self._client = client or httpx.AsyncClient(timeout=timeout)
         self._owns_client = client is None
 
@@ -60,7 +60,7 @@ class OllamaProvider(VisionProvider):
         content = response.json().get("message", {}).get("content", "")
         if not content:
             raise AIProviderError("Ollama returned an empty message content")
-        _log.info("ollama.extracted", model=self._model)
+        _log.info("ollama.extracted", model=self.model)
         return BackExtraction.from_raw_json(content)
 
     async def health_check(self) -> ProviderHealth:
@@ -70,11 +70,11 @@ class OllamaProvider(VisionProvider):
         except httpx.HTTPError as exc:
             return ProviderHealth(provider=self.name, healthy=False, detail=str(exc))
         models = {m.get("name", "") for m in response.json().get("models", [])}
-        model_present = any(name.startswith(self._model) for name in models)
+        model_present = any(name.startswith(self.model) for name in models)
         detail = (
             f"{self._host} erreichbar"
             if model_present
-            else f"{self._host} erreichbar, aber Modell '{self._model}' nicht installiert"
+            else f"{self._host} erreichbar, aber Modell '{self.model}' nicht installiert"
         )
         return ProviderHealth(provider=self.name, healthy=model_present, detail=detail)
 
@@ -85,7 +85,7 @@ class OllamaProvider(VisionProvider):
     def _build_payload(self, image: bytes) -> dict[str, Any]:
         encoded = base64.b64encode(image).decode("ascii")
         return {
-            "model": self._model,
+            "model": self.model,
             "stream": False,
             "format": BACK_EXTRACTION_SCHEMA,
             "messages": [

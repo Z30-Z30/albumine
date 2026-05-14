@@ -68,6 +68,21 @@ class Settings(BaseSettings):
         default=None, description="Model name for the OpenAI-compat endpoint."
     )
 
+    # --- Processing --------------------------------------------------------
+    jpeg_quality: int = Field(default=90, ge=1, le=100, description="Output JPEG quality.")
+    auto_crop: bool = Field(
+        default=True, description="Detect and extract the photo from the scan background."
+    )
+    write_sidecar: bool = Field(
+        default=False, description="Also write an .xmp sidecar next to each output image."
+    )
+    archive_originals: bool = Field(
+        default=False, description="Keep source files in the archive directory after processing."
+    )
+    ai_fallback_enabled: bool = Field(
+        default=True, description="Fall back to Tesseract OCR when the vision backend fails."
+    )
+
     # --- Logging -----------------------------------------------------------
     log_level: str = Field(default="INFO", description="Root log level.")
     log_json: bool = Field(default=True, description="Emit structured JSON logs.")

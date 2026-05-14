@@ -47,7 +47,7 @@ class AnthropicProvider(VisionProvider):
         *,
         client: AsyncAnthropic | None = None,
     ) -> None:
-        self._model = model
+        self.model = model
         self._client = client or AsyncAnthropic(api_key=api_key)
 
     async def extract_back(
@@ -56,7 +56,7 @@ class AnthropicProvider(VisionProvider):
         encoded = base64.b64encode(image).decode("ascii")
         try:
             response = await self._client.messages.create(
-                model=self._model,
+                model=self.model,
                 max_tokens=_MAX_TOKENS,
                 system=SYSTEM_PROMPT,
                 tools=[build_tool_definition()],
@@ -82,7 +82,7 @@ class AnthropicProvider(VisionProvider):
             raise AIProviderError(f"Anthropic request failed: {exc}") from exc
 
         extraction = _extraction_from_response(response)
-        _log.info("anthropic.extracted", model=self._model)
+        _log.info("anthropic.extracted", model=self.model)
         return extraction
 
     async def health_check(self) -> ProviderHealth:

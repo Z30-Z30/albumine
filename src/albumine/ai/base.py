@@ -135,6 +135,9 @@ class VisionProvider(ABC):
     #: Stable provider identifier, matches ``Settings.ai_provider`` values.
     name: ClassVar[str]
 
+    #: The model identifier in use (set by each provider in ``__init__``).
+    model: str
+
     @abstractmethod
     async def extract_back(
         self, image: bytes, *, mime_type: str = "image/jpeg"

@@ -5,6 +5,13 @@ from albumine.parsing.date_parser import (
     DatePrecision,
     ParsedDate,
     parse_date,
+    weakest_confidence,
 )
 
-__all__ = ["Confidence", "DatePrecision", "ParsedDate", "parse_date"]
+__all__ = [
+    "Confidence",
+    "DatePrecision",
+    "ParsedDate",
+    "parse_date",
+    "weakest_confidence",
+]

@@ -26,6 +26,11 @@ dependencies = [
     "pillow>=11.0",         # image loading / processing
     "httpx>=0.28",          # async HTTP for Ollama / OpenAI-compatible providers
     "anthropic>=0.40",      # Claude vision provider (tool-use structured output)
+    "sqlmodel>=0.0.22",     # SQLite ORM + Pydantic models
+    "pdf2image>=1.17",      # rasterise PDF pages to images (needs poppler)
+    "opencv-python-headless>=4.10",  # auto-crop / deskew (no GUI deps for a server)
+    "numpy>=2.1",           # array ops for the OpenCV pipeline
+    "pytesseract>=0.3.13",  # OCR fallback when the vision-LLM backend is down
 ]
 
 [project.optional-dependencies]
@@ -37,6 +42,8 @@ dev = [
 
 [project.scripts]
 albumine = "albumine.main:run"
+albumine-cli = "albumine.cli:main"
+albumine-worker = "albumine.tasks:run_worker"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/albumine"]

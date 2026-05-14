@@ -157,3 +157,36 @@ Reconciliation passiert in der End-to-End-Pipeline (Phase 5).
 
 **Datenschutz:** Default ist Ollama (lokal). `AnthropicProvider` sendet das
 Bild an Anthropic — Cloud-Opt-in, das die UI explizit kenntlich machen muss.
+
+## End-to-End-Pipeline (Phase 5)
+
+`pipeline.py:Pipeline` steckt die Stufen für ein `ScanPair` zusammen:
+
+```
+process_front  ─┐
+extract_back     ├─► reconcile_date ─► PhotoMetadata ─► write_metadata ─► ScanRecord (SQLite)
+(Tesseract-Fb)  ─┘
+```
+
+- **`processing/front.py`** — lädt die Quelle (Bilddatei oder via `pdf2image`
+  rasterisierte PDF-Seite), korrigiert EXIF-Orientierung und extrahiert das
+  Foto aus dem Scan-Hintergrund (Auto-Crop + Deskew in einem Perspektiv-Warp,
+  OpenCV). Farbkorrektur/Upscaling sind höhere Stufen → spätere Phase.
+- **`processing/back.py`** — OCR-Orchestrator: Vision-LLM zuerst, bei Ausfall
+  Tesseract-Fallback (nur Rohtext, Pair bleibt `needs_review`).
+- **`reconcile_date`** — kombiniert die LLM-Datumslesung mit dem
+  deterministischen `date_parser`; finale Confidence = die schwächere von beiden.
+- **`db/ScanRecord`** — eine Tabelle, Primärschlüssel `pair_id` (inhalts-
+  abgeleitet ⇒ Idempotenz). Status: `pending` → `processing` →
+  `done` / `needs_review` / `failed`.
+
+**Ausführungswege:**
+
+| Weg                 | Einstieg                       | Zweck                            |
+|---------------------|--------------------------------|----------------------------------|
+| CLI                 | `albumine-cli` (`cli.py`)      | Einmal-Lauf, Bulk-Digitalisierung, Debugging |
+| ARQ-Worker          | `albumine-worker` (`tasks.py`) | asynchrone Verarbeitung, Cron-Rescan alle 15 min |
+
+Beide nutzen dieselbe `Pipeline`. Der Worker enqueued Process-Jobs mit einer
+`pair_id`-basierten Job-ID — doppelte Jobs für dasselbe Pair werden auf
+Queue-Ebene verworfen.
