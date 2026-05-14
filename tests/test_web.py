@@ -169,3 +169,13 @@ def test_rescan_without_redis_reports_offline(app_settings):
         response = client.post("/rescan")
     assert response.status_code == 200
     assert "Redis ist offline" in response.text
+
+
+def test_404_renders_styled_error_page(app_settings):
+    from fastapi.testclient import TestClient
+
+    with TestClient(create_app(app_settings)) as client:
+        response = client.get("/pair/does-not-exist")
+    assert response.status_code == 404
+    assert "Fehler 404" in response.text
+    assert "Zurück zur Galerie" in response.text

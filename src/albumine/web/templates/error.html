@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}AlbuMine — Fehler {{ status_code }}{% endblock %}
+
+{% block content %}
+<section class="error-page">
+    <h2>Fehler {{ status_code }}</h2>
+    <p>{{ detail }}</p>
+    <p><a href="/">&larr; Zurück zur Galerie</a></p>
+</section>
+{% endblock %}

@@ -91,6 +91,10 @@ class WorkerSettings:
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)
     # Safety-net rescan of the input folder every 15 minutes.
     cron_jobs = [cron(scan_input_task, minute={0, 15, 30, 45})]
+    # Bound retries (no endless loops on a poison job) and allow slow ML jobs
+    # (Real-ESRGAN / GFPGAN on CPU) enough time to finish.
+    max_tries = 3
+    job_timeout = 1200
 
 
 def run_worker() -> None:

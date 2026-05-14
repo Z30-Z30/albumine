@@ -7,19 +7,28 @@ AlbuMine verarbeitet Foto-Scans aus einem Watch-Folder. Kernfeature:
 mit Datum/Ort/Personen) — werden automatisch zu einer einzigen, mit Metadaten
 angereicherten Bilddatei zusammengeführt.
 
-> Status: **Phase 8 – Unraid-Deployment.** Self-contained All-in-one-Container
-> (Redis + Worker + Web), Community-Applications-Template und Installations-
-> Doku stehen. Als nächstes: Polishing.
+> Status: **funktionsfähiges MVP.** Alle neun geplanten Phasen sind umgesetzt:
+> Ingest, Pair-Detection, Datum-Parsing, ExifTool-Metadaten, austauschbarer
+> Vision-LLM-Layer, End-to-End-Pipeline (CLI + ARQ-Worker), Web-UI,
+> Bildverbesserungs-Stufen und das Unraid-Deployment.
 
-## Features (Zielbild)
+## Screenshots
+
+| Galerie | Detail & Korrektur | Status |
+|---------|--------------------|--------|
+| ![Galerie](images/albumine-gallery.png) | ![Detail](images/albumine-detail.png) | ![Status](images/albumine-status.png) |
+
+## Features
 
 - Watch-Folder-Ingest mit Pair-Detection (PDF-Duplex, Bildpaare, manueller Override)
 - Vision-LLM-Pipeline für handschriftliche Rückseiten (Ollama / Claude / OpenAI-kompatibel)
 - Robustes Datum-Parsing für unvollständige Angaben („Sommer 1962", „ca. 1970")
-- Metadaten-Schreiben via ExifTool (EXIF/IPTC/XMP)
-- Web-UI: Galerie, manuelle Korrektur, Status-Dashboard
-- Optionale Bildverbesserung (Crop/Deskew → Farbkorrektur → Upscaling → Gesichts-Restauration)
-- Unraid Community Applications Template
+- Metadaten-Schreiben via ExifTool (EXIF/IPTC/XMP + eigener `albumine`-Namespace)
+- Web-UI: Galerie, manuelle Korrektur, Re-Processing, Status-Dashboard
+- Bildverbesserungs-Stufen: `none` → `basic` (Farbe/Kontrast) → `enhance`
+  (Real-ESRGAN) → `restore` (GFPGAN), mit Graceful Degradation
+- Resilienz: Tesseract-Fallback bei AI-Ausfall, Degraded-Modus ohne Redis
+- Unraid Community Applications Template (All-in-one-Container)
 
 ## Tech-Stack
 

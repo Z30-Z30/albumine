@@ -18,11 +18,14 @@ from pathlib import Path
 
 from arq import create_pool
 from arq.connections import RedisSettings
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from albumine.ai import build_provider
 from albumine.api import actions, gallery, status
+from albumine.api.deps import templates
 from albumine.config import Settings, get_settings
 from albumine.db import create_db_engine, init_db, make_session_factory
 from albumine.ingest import FolderWatcher
@@ -129,6 +132,31 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def healthz() -> dict[str, str]:
         """Liveness probe used by the Docker healthcheck."""
         return {"status": "ok", "version": version}
+
+    @app.exception_handler(StarletteHTTPException)
+    async def http_exception_handler(
+        request: Request, exc: StarletteHTTPException
+    ) -> HTMLResponse:
+        """Render a styled HTML page for HTTP errors (404 etc.)."""
+        return templates.TemplateResponse(
+            request,
+            "error.html",
+            {"status_code": exc.status_code, "detail": exc.detail},
+            status_code=exc.status_code,
+        )
+
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(
+        request: Request, exc: Exception
+    ) -> HTMLResponse:
+        """Log and render a 500 page for any unhandled error."""
+        _log.exception("request.unhandled_error", path=request.url.path)
+        return templates.TemplateResponse(
+            request,
+            "error.html",
+            {"status_code": 500, "detail": "Interner Serverfehler."},
+            status_code=500,
+        )
 
     app.include_router(gallery.router)
     app.include_router(actions.router)

@@ -197,6 +197,15 @@ button:hover { filter: brightness(1.1); }
 .ai-health.error { color: var(--error); }
 .ai-health small { display: block; color: var(--muted); }
 
+/* --- error page --- */
+.error-page {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2rem;
+    text-align: center;
+}
+
 /* --- flash messages --- */
 .flash {
     display: inline-block;
