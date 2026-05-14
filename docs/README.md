@@ -7,8 +7,9 @@ AlbuMine verarbeitet Foto-Scans aus einem Watch-Folder. Kernfeature:
 mit Datum/Ort/Personen) — werden automatisch zu einer einzigen, mit Metadaten
 angereicherten Bilddatei zusammengeführt.
 
-> Status: **Phase 1 – Grundgerüst.** Lauffähige FastAPI-App, Docker-Setup,
-> Projektstruktur. Die Verarbeitungs-Pipeline folgt in den nächsten Phasen.
+> Status: **Phase 2 – Ingest & Pair-Detection.** Watch-Folder, PDF-Splitting
+> und Front/Back-Pair-Detection stehen (mit Unit-Tests). AI-Layer und Web-UI
+> folgen in den nächsten Phasen.
 
 ## Features (Zielbild)
 

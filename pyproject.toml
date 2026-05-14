@@ -21,6 +21,8 @@ dependencies = [
     "structlog>=24.4",      # structured logging — non-functional requirement
     "arq>=0.26",            # Redis-backed task queue (chosen over BackgroundTasks)
     "redis>=5.2",
+    "pypdf>=5.1",           # pure-python PDF page counting / splitting
+    "watchdog>=6.0",        # cross-platform watch-folder (inotify on Linux)
 ]
 
 [project.optional-dependencies]

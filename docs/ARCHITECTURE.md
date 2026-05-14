@@ -72,3 +72,32 @@ src/albumine/
 | Task-Queue  | ARQ (Redis)           | Persistente Queue + Retries über Container-Neustart |
 | Datenbank   | SQLite                | Pragmatisch für Single-Container-Selfhost           |
 | OCR         | Vision-LLM + Tesseract-Fallback | Handschrift ist Tesseracts Schwachstelle  |
+| PDF-Split   | `pypdf` (pure-python)           | Page-Counting/Splitting ohne System-Dep — testbar ohne poppler |
+| Watch-Folder| `watchdog`                      | Plattformübergreifend (inotify auf Linux, FSEvents auf macOS)  |
+
+## Ingest-Stage (Phase 2)
+
+Der Ingest läuft zustandslos über einen **Directory-Scan**: Der `FolderWatcher`
+(watchdog, debounced) feuert nach einer Ruhephase einen vollständigen Re-Scan
+des `/input`-Ordners. `detect_pairs()` gruppiert die Dateien dann in
+`ScanPair`-Objekte.
+
+**Pair-Detection-Heuristik:**
+
+| Eingabe                         | Methode         | Ergebnis                         |
+|---------------------------------|-----------------|----------------------------------|
+| PDF, 2 Seiten                   | `pdf_duplex`    | Seite 1 = Front, Seite 2 = Back  |
+| PDF, N×2 Seiten                 | `pdf_multi`     | alternierend Front/Back          |
+| PDF, 1 Seite                    | `single_pdf`    | nur Front                        |
+| PDF, ungerade > 1 Seiten        | `ambiguous`     | `needs_review` — manueller Override |
+| Bildpaar (`…a`/`…b`, `…_front`/`…_back`) | `image_pair` | Front + Back                  |
+| Einzelbild ohne Marker          | `single_image`  | nur Front                        |
+| Bild mit Marker ohne Partner / Konflikt | `ambiguous` | `needs_review`               |
+
+Side-Marker werden konservativ geparst: ein nacktes `a`/`b` zählt nur nach
+einer Ziffer (`foto_001a`), Wort-Marker (`front`/`back`) nur nach einem
+Trennzeichen — so wird z. B. `banana.jpg` nicht fälschlich als Paar erkannt.
+
+**Idempotenz:** Jedes `ScanPair` bekommt eine `pair_id`, die aus dem
+*Inhalts-Hash* (SHA-256) der Quelldateien plus den Seitenindizes abgeleitet
+wird. Re-Ingest derselben Dateien ⇒ dieselbe `pair_id` ⇒ keine Duplikate.
