@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+
+# Local dev data (docker-compose volumes)
+data/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/

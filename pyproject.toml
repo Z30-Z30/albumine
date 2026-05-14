@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "albumine"
+version = "0.1.0"
+description = "Self-hostable web app to digitise and enrich old family photo albums."
+readme = "docs/README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Ahmed" }]
+
+# Dependencies are kept deliberately slim. Each addition must justify itself.
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.34",
+    "jinja2>=3.1",
+    "pydantic>=2.10",
+    "pydantic-settings>=2.7",
+    "structlog>=24.4",      # structured logging — non-functional requirement
+    "arq>=0.26",            # Redis-backed task queue (chosen over BackgroundTasks)
+    "redis>=5.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.25",
+    "httpx>=0.28",          # FastAPI TestClient transport
+    "ruff>=0.9",
+]
+
+[project.scripts]
+albumine = "albumine.main:run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/albumine"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]

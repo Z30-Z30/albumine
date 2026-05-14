@@ -1,0 +1,37 @@
+# Local development stack. The Unraid deployment uses the Community
+# Applications template (unraid/albumine.xml) instead of this file.
+
+services:
+  albumine:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: albumine:dev
+    ports:
+      - "8765:8765"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      UMASK: "022"
+      ALBUMINE_REDIS_URL: "redis://redis:6379"
+      ALBUMINE_LOG_JSON: "false"
+      # Point at an Ollama instance reachable from the container.
+      # ALBUMINE_OLLAMA_HOST: "http://host.docker.internal:11434"
+    volumes:
+      - ./data/input:/input
+      - ./data/output:/output
+      - ./data/config:/config
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
