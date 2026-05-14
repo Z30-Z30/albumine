@@ -7,9 +7,10 @@ AlbuMine verarbeitet Foto-Scans aus einem Watch-Folder. Kernfeature:
 mit Datum/Ort/Personen) — werden automatisch zu einer einzigen, mit Metadaten
 angereicherten Bilddatei zusammengeführt.
 
-> Status: **Phase 3 – Metadaten-Layer.** Ingest/Pair-Detection, robustes
-> Datum-Parsing und der ExifTool-Metadaten-Writer (inkl. eigenem XMP-Namespace)
-> stehen mit Unit-Tests. AI-Layer und Web-UI folgen in den nächsten Phasen.
+> Status: **Phase 4 – AI-Layer.** Ingest/Pair-Detection, Datum-Parsing, der
+> ExifTool-Writer und der austauschbare Vision-LLM-Layer (Ollama / Claude /
+> OpenAI-kompatibel, strukturiertes JSON) stehen mit Unit-Tests. End-to-End-
+> Pipeline und Web-UI folgen in den nächsten Phasen.
 
 ## Features (Zielbild)
 

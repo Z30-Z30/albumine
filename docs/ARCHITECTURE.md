@@ -129,3 +129,31 @@ in die Bilddatei. Aufgeteilt in einen reinen Argument-Builder
 Der `XMP-albumine`-Namespace wird über `exiftool_albumine.config` definiert.
 IPTC wird mit `CodedCharacterSet=UTF8` geschrieben, damit Umlaute korrekt sind.
 Optional kann eine `.xmp`-Sidecar-Datei mitgeschrieben werden.
+
+## AI-Layer (Phase 4)
+
+Der Vision-LLM-Layer (`ai/`) ist als **Strategy-Pattern** gebaut: alle Provider
+implementieren `VisionProvider` und liefern dasselbe `BackExtraction`-Modell —
+der Rest der Pipeline kennt das konkrete Backend nicht.
+
+| Provider              | Backend                          | Strukturierte Ausgabe          |
+|-----------------------|----------------------------------|--------------------------------|
+| `OllamaProvider`      | self-hosted Ollama (HTTP)        | `format` = JSON-Schema         |
+| `AnthropicProvider`   | Anthropic Claude (SDK)           | erzwungenes Tool-Use           |
+| `OpenAICompatProvider`| OpenAI-kompatibel (z. B. vLLM)   | `response_format` json_schema  |
+
+Ein einziges JSON-Schema (`ai/prompts.py:BACK_EXTRACTION_SCHEMA`) treibt die
+strukturierte Ausgabe aller drei Provider und spiegelt das `BackExtraction`-
+Modell. Der System-Prompt ist deutsch (Familienalben sind meist deutsch
+beschriftet) und enthält Few-Shot-Beispiele.
+
+`build_provider(settings)` wählt anhand von `ALBUMINE_AI_PROVIDER` den Provider
+und prüft die nötige Konfiguration (API-Key, Base-URL).
+
+**Wichtig — Trennung der Datums-Logik:** Das LLM liefert *seine* Lesung des
+Datums (`ExtractedDate`). Die verbindliche EXIF-Zeit kommt aber weiterhin aus
+dem deterministischen `date_parser`, angewendet auf `date.original_text` — die
+Reconciliation passiert in der End-to-End-Pipeline (Phase 5).
+
+**Datenschutz:** Default ist Ollama (lokal). `AnthropicProvider` sendet das
+Bild an Anthropic — Cloud-Opt-in, das die UI explizit kenntlich machen muss.

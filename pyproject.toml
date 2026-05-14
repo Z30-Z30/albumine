@@ -24,13 +24,14 @@ dependencies = [
     "pypdf>=5.1",           # pure-python PDF page counting / splitting
     "watchdog>=6.0",        # cross-platform watch-folder (inotify on Linux)
     "pillow>=11.0",         # image loading / processing
+    "httpx>=0.28",          # async HTTP for Ollama / OpenAI-compatible providers
+    "anthropic>=0.40",      # Claude vision provider (tool-use structured output)
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.25",
-    "httpx>=0.28",          # FastAPI TestClient transport
     "ruff>=0.9",
 ]
 
