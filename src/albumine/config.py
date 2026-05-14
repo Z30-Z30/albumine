@@ -7,6 +7,7 @@ single-container Selfhost setup.
 
 from __future__ import annotations
 
+from enum import StrEnum
 from pathlib import Path
 from typing import Literal
 
@@ -14,6 +15,15 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 AIProvider = Literal["ollama", "anthropic", "openai_compat"]
+
+
+class EnhancementLevel(StrEnum):
+    """Image-enhancement intensity, each level building on the previous one."""
+
+    NONE = "none"        # only crop / deskew (handled in front processing)
+    BASIC = "basic"      # + colour/white-balance correction, contrast, denoise
+    ENHANCE = "enhance"  # + Real-ESRGAN upscaling
+    RESTORE = "restore"  # + GFPGAN face restoration
 
 
 class Settings(BaseSettings):
@@ -81,6 +91,27 @@ class Settings(BaseSettings):
     )
     ai_fallback_enabled: bool = Field(
         default=True, description="Fall back to Tesseract OCR when the vision backend fails."
+    )
+
+    # --- Image enhancement -------------------------------------------------
+    default_enhancement_level: EnhancementLevel = Field(
+        default=EnhancementLevel.BASIC,
+        description="Enhancement level applied to photos unless overridden per pair.",
+    )
+    realesrgan_bin: str | None = Field(
+        default=None,
+        description="Path to the Real-ESRGAN CLI binary (enables the 'enhance' level).",
+    )
+    realesrgan_args: str = Field(
+        default="",
+        description="Extra CLI args for Real-ESRGAN, appended after the -i/-o pair.",
+    )
+    gfpgan_bin: str | None = Field(
+        default=None,
+        description="Path to the GFPGAN CLI binary (enables the 'restore' level).",
+    )
+    gfpgan_args: str = Field(
+        default="", description="Extra CLI args for GFPGAN, appended after -i/-o."
     )
 
     # --- Logging -----------------------------------------------------------

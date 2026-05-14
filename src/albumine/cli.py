@@ -21,7 +21,7 @@ from collections.abc import Sequence
 from sqlmodel import Session, select
 
 from albumine.ai import AIProviderError, build_provider
-from albumine.config import Settings, get_settings
+from albumine.config import EnhancementLevel, Settings, get_settings
 from albumine.db import ScanRecord, create_db_engine, init_db, make_session_factory
 from albumine.logging import configure_logging
 from albumine.pipeline import Pipeline
@@ -37,6 +37,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     scan_parser.add_argument(
         "--force", action="store_true", help="Re-process pairs already marked done"
+    )
+    scan_parser.add_argument(
+        "--level",
+        choices=[level.value for level in EnhancementLevel],
+        default=None,
+        help="Image-enhancement level (defaults to ALBUMINE_DEFAULT_ENHANCEMENT_LEVEL)",
     )
     subparsers.add_parser("health", help="Check the configured AI provider")
     subparsers.add_parser("list", help="List processed scan records")
@@ -54,7 +60,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 async def _dispatch(args: argparse.Namespace, settings: Settings) -> int:
     if args.command == "scan":
-        return await _cmd_scan(settings, force=args.force)
+        level = EnhancementLevel(args.level) if args.level else None
+        return await _cmd_scan(settings, force=args.force, level=level)
     if args.command == "health":
         return await _cmd_health(settings)
     if args.command == "list":
@@ -62,7 +69,9 @@ async def _dispatch(args: argparse.Namespace, settings: Settings) -> int:
     return 1  # pragma: no cover - argparse enforces a valid command
 
 
-async def _cmd_scan(settings: Settings, *, force: bool) -> int:
+async def _cmd_scan(
+    settings: Settings, *, force: bool, level: EnhancementLevel | None
+) -> int:
     settings.config_dir.mkdir(parents=True, exist_ok=True)
     engine = create_db_engine(settings.database_url)
     init_db(engine)
@@ -70,7 +79,7 @@ async def _cmd_scan(settings: Settings, *, force: bool) -> int:
     pipeline = Pipeline(settings, provider, make_session_factory(engine))
 
     try:
-        results = await pipeline.process_directory(force=force)
+        results = await pipeline.process_directory(force=force, enhancement_level=level)
     finally:
         await provider.aclose()
 

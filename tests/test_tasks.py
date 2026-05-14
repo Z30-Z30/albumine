@@ -9,7 +9,7 @@ class _FakePipeline:
     def __init__(self):
         self.processed: list[str] = []
 
-    async def process_pair(self, pair, *, force=False):
+    async def process_pair(self, pair, *, force=False, enhancement_level=None):
         self.processed.append(pair.pair_id)
         return PipelineResult(
             pair_id=pair.pair_id,

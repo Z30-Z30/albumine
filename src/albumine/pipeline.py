@@ -20,7 +20,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from albumine.ai.base import AIProviderError, BackExtraction, ExtractedDate, VisionProvider
-from albumine.config import Settings
+from albumine.config import EnhancementLevel, Settings
 from albumine.db import ScanRecord, ScanStatus
 from albumine.db.engine import SessionFactory
 from albumine.ingest import ScanPair, scan_directory
@@ -33,6 +33,7 @@ from albumine.parsing.date_parser import (
     weakest_confidence,
 )
 from albumine.processing.back import extract_back
+from albumine.processing.enhance import apply_enhancement
 from albumine.processing.front import FrontProcessingError, process_front, save_image
 from albumine.processing.metadata_writer import (
     ExifToolError,
@@ -54,6 +55,7 @@ class PipelineResult:
     status: ScanStatus
     output_path: Path | None
     used_fallback: bool
+    enhancement_level: EnhancementLevel = EnhancementLevel.NONE
     error: str | None = None
 
 
@@ -119,16 +121,34 @@ class Pipeline:
         self._session_factory = session_factory
         self._write_metadata = metadata_writer
 
-    async def process_directory(self, *, force: bool = False) -> list[PipelineResult]:
+    async def process_directory(
+        self,
+        *,
+        force: bool = False,
+        enhancement_level: EnhancementLevel | None = None,
+    ) -> list[PipelineResult]:
         """Detect and process every scan pair currently in the input folder."""
         pairs = scan_directory(self._settings.input_dir)
         _log.info("pipeline.directory_scan", input=str(self._settings.input_dir), pairs=len(pairs))
-        return [await self.process_pair(pair, force=force) for pair in pairs]
+        return [
+            await self.process_pair(pair, force=force, enhancement_level=enhancement_level)
+            for pair in pairs
+        ]
 
     async def process_pair(
-        self, pair: ScanPair, *, force: bool = False
+        self,
+        pair: ScanPair,
+        *,
+        force: bool = False,
+        enhancement_level: EnhancementLevel | None = None,
     ) -> PipelineResult:
         """Run one scan pair through the full pipeline.
+
+        Args:
+            pair: The detected scan pair.
+            force: Re-process even if the pair is already ``DONE``.
+            enhancement_level: Override the default enhancement level for this
+                pair. Defaults to ``settings.default_enhancement_level``.
 
         Returns a :class:`PipelineResult`; never raises for expected processing
         failures — those are recorded on the :class:`ScanRecord` as ``FAILED``.
@@ -142,11 +162,15 @@ class Pipeline:
                 used_fallback=False,
             )
 
+        requested_level = enhancement_level or self._settings.default_enhancement_level
         self._mark_processing(pair)
 
         try:
             output_path = self._output_path_for(pair)
             front_image = process_front(pair.front, auto_crop=self._settings.auto_crop)
+            front_image, applied_level = apply_enhancement(
+                front_image, requested_level, settings=self._settings
+            )
             self._settings.output_dir.mkdir(parents=True, exist_ok=True)
             save_image(front_image, str(output_path), jpeg_quality=self._settings.jpeg_quality)
 
@@ -164,7 +188,9 @@ class Pipeline:
                 provider_error = back_result.provider_error
 
             parsed_date = reconcile_date(extraction.date)
-            metadata = self._build_metadata(pair, extraction, parsed_date, used_fallback)
+            metadata = self._build_metadata(
+                pair, extraction, parsed_date, used_fallback, applied_level
+            )
             self._write_metadata(output_path, metadata, self._settings.write_sidecar)
         except (FrontProcessingError, AIProviderError, ExifToolError, OSError) as exc:
             self._mark_failed(pair.pair_id, str(exc))
@@ -184,7 +210,7 @@ class Pipeline:
         )
         self._persist_success(
             pair, output_path, extraction, parsed_date, metadata, used_fallback,
-            provider_error, status,
+            provider_error, status, applied_level,
         )
         _log.info(
             "pipeline.processed",
@@ -192,12 +218,14 @@ class Pipeline:
             status=status,
             output=str(output_path),
             used_fallback=used_fallback,
+            enhancement=str(applied_level),
         )
         return PipelineResult(
             pair_id=pair.pair_id,
             status=status,
             output_path=output_path,
             used_fallback=used_fallback,
+            enhancement_level=applied_level,
         )
 
     # --- metadata assembly --------------------------------------------------
@@ -208,6 +236,7 @@ class Pipeline:
         extraction: BackExtraction,
         parsed_date: ParsedDate,
         used_fallback: bool,
+        enhancement_level: EnhancementLevel,
     ) -> PhotoMetadata:
         has_date = parsed_date.precision is not DatePrecision.NONE
         return PhotoMetadata(
@@ -222,6 +251,7 @@ class Pipeline:
             date=parsed_date if has_date else None,
             ai_provider="tesseract" if used_fallback else self._provider.name,
             ai_model=None if used_fallback else self._provider.model,
+            enhancement_level=str(enhancement_level),
             source_files=[str(p) for p in pair.source_files],
         )
 
@@ -295,6 +325,7 @@ class Pipeline:
             date=parsed_date if has_date else None,
             ai_provider=record.ai_provider,
             ai_model=record.ai_model,
+            enhancement_level=record.enhancement_level,
             source_files=record.source_files,
         )
 
@@ -345,6 +376,7 @@ class Pipeline:
         used_fallback: bool,
         provider_error: str | None,
         status: ScanStatus,
+        enhancement_level: EnhancementLevel,
     ) -> None:
         with self._session_factory() as session:
             record = session.get(ScanRecord, pair.pair_id)
@@ -367,6 +399,7 @@ class Pipeline:
             record.notes = extraction.notes
             record.ai_provider = metadata.ai_provider
             record.ai_model = metadata.ai_model
+            record.enhancement_level = str(enhancement_level)
             record.extraction_fallback = used_fallback
             record.error = provider_error
             record.status = status

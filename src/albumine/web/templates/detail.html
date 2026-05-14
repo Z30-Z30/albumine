@@ -44,10 +44,20 @@
 
 <section class="detail-section">
     <h3>Aktionen</h3>
-    <button hx-post="/pair/{{ record.pair_id }}/reprocess"
-            hx-target="#reprocess-flash" hx-swap="innerHTML">
-        Neu verarbeiten (AI erneut anwenden)
-    </button>
+    <form class="reprocess-form" hx-post="/pair/{{ record.pair_id }}/reprocess"
+          hx-target="#reprocess-flash" hx-swap="innerHTML">
+        <label>
+            Bildverbesserung
+            <select name="enhancement_level">
+                <option value="">Standard</option>
+                <option value="none">none — nur Crop/Deskew</option>
+                <option value="basic">basic — Farbe, Kontrast, Entrauschen</option>
+                <option value="enhance">enhance — + Upscaling (Real-ESRGAN)</option>
+                <option value="restore">restore — + Gesichts-Restauration (GFPGAN)</option>
+            </select>
+        </label>
+        <button type="submit">Neu verarbeiten (AI + Bildverbesserung erneut anwenden)</button>
+    </form>
     <span id="reprocess-flash"></span>
 </section>
 
@@ -56,6 +66,7 @@
     <dl>
         <dt>Erkennungsmethode</dt><dd>{{ record.detection_method }}</dd>
         <dt>AI-Provider</dt><dd>{{ record.ai_provider or "—" }}{% if record.ai_model %} ({{ record.ai_model }}){% endif %}</dd>
+        <dt>Bildverbesserung</dt><dd>{{ record.enhancement_level }}</dd>
         <dt>Tesseract-Fallback</dt><dd>{{ "ja" if record.extraction_fallback else "nein" }}</dd>
         <dt>Quelldateien</dt><dd>{{ record.source_files | join(", ") }}</dd>
         <dt>Ausgabe</dt><dd>{{ record.output_path or "—" }}</dd>

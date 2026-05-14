@@ -19,7 +19,7 @@ from arq import cron
 from arq.connections import RedisSettings
 
 from albumine.ai import build_provider
-from albumine.config import get_settings
+from albumine.config import EnhancementLevel, get_settings
 from albumine.db import create_db_engine, init_db, make_session_factory
 from albumine.ingest import ScanPair, scan_directory
 from albumine.logging import configure_logging, get_logger
@@ -29,16 +29,22 @@ _log = get_logger(__name__)
 
 
 async def process_pair_task(
-    ctx: dict[str, Any], pair_data: dict[str, Any], *, force: bool = False
+    ctx: dict[str, Any],
+    pair_data: dict[str, Any],
+    *,
+    force: bool = False,
+    enhancement_level: str | None = None,
 ) -> dict[str, str]:
     """Process one serialised :class:`ScanPair` through the pipeline.
 
     ``force=True`` re-processes a pair even if it is already ``DONE`` (used by
-    the web UI's re-processing action).
+    the web UI's re-processing action). ``enhancement_level`` overrides the
+    default image-enhancement level for this pair.
     """
     pipeline: Pipeline = ctx["pipeline"]
     pair = ScanPair.from_dict(pair_data)
-    result = await pipeline.process_pair(pair, force=force)
+    level = EnhancementLevel(enhancement_level) if enhancement_level else None
+    result = await pipeline.process_pair(pair, force=force, enhancement_level=level)
     return {"pair_id": result.pair_id, "status": str(result.status)}
 
 

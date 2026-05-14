@@ -7,9 +7,9 @@ AlbuMine verarbeitet Foto-Scans aus einem Watch-Folder. Kernfeature:
 mit Datum/Ort/Personen) — werden automatisch zu einer einzigen, mit Metadaten
 angereicherten Bilddatei zusammengeführt.
 
-> Status: **Phase 6 – Web-UI.** Galerie, Detail-Ansicht mit manueller
-> Korrektur, Re-Processing und Status-Dashboard stehen (HTMX + Jinja2). Die
-> Bildverbesserungs-Stufen (Upscaling, Restauration) folgen als nächstes.
+> Status: **Phase 7 – Enhancement-Pipeline.** Bildverbesserungs-Stufen
+> (`basic` Farb-/Kontrastkorrektur, `enhance` Real-ESRGAN-Upscaling, `restore`
+> GFPGAN-Restauration) stehen. Als nächstes: Unraid-Template + Doku.
 
 ## Features (Zielbild)
 

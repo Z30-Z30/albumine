@@ -223,3 +223,30 @@ reiht bei Änderungen einen `scan_input_task` in die Queue ein.
 Degraded-Modus weiter — Galerie und Korrekturen funktionieren, nur die
 Queue-Aktionen (Re-Processing, Rescan) melden „Redis offline". htmx ist lokal
 gebündelt (`static/htmx.min.js`), kein CDN-Zugriff nötig.
+
+## Enhancement-Pipeline (Phase 7)
+
+`processing/enhance.py:apply_enhancement` wird in der Pipeline nach dem
+Front-Processing (Crop/Deskew) angewendet. Die Stufen bauen aufeinander auf:
+
+| Stufe     | Was passiert                                  | Werkzeug                |
+|-----------|-----------------------------------------------|-------------------------|
+| `none`    | nichts (nur Crop/Deskew aus dem Front-Step)   | —                       |
+| `basic`   | Gray-World-Weißabgleich, leichtes Entrauschen, Kontrast-Autostretch | Pillow/OpenCV |
+| `enhance` | `basic` + Upscaling                           | Real-ESRGAN (CLI)       |
+| `restore` | `enhance` + Gesichts-Restauration             | GFPGAN (CLI)            |
+
+`basic` ist immer verfügbar (kein Extra-Tooling) und der Default. Real-ESRGAN
+und GFPGAN sind schwere ML-Tools — sie werden, wie im Spec gefordert, als
+**externe CLI-Subprozesse** aufgerufen (Vertrag: `<bin> -i <in> -o <out>
+[args]`), konfiguriert über `ALBUMINE_REALESRGAN_BIN` / `ALBUMINE_GFPGAN_BIN`.
+Sie sind **nicht** im Basis-Image gebündelt (Größe/GPU-Abhängigkeit).
+
+**Graceful Degradation:** Ist ein Tool nicht konfiguriert oder schlägt fehl,
+fällt `apply_enhancement` auf die höchste tatsächlich erreichte Stufe zurück
+und gibt diese zurück — die *angewendete* Stufe (nicht die angeforderte) landet
+in `ScanRecord.enhancement_level` und im XMP-`albumine`-Namespace.
+
+Die Stufe ist pro Foto wählbar: das Detail-UI bietet sie beim Re-Processing an,
+die CLI über `albumine-cli scan --level <stufe>`, der globale Default kommt aus
+`ALBUMINE_DEFAULT_ENHANCEMENT_LEVEL`.

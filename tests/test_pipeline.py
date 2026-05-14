@@ -3,6 +3,7 @@
 from types import SimpleNamespace
 
 from albumine.ai.base import BackExtraction, ExtractedDate
+from albumine.config import EnhancementLevel
 from albumine.db import ScanRecord, ScanStatus
 from albumine.ingest.models import DetectionMethod, PageRef, ScanPair
 from albumine.parsing.date_parser import Confidence, DatePrecision
@@ -190,6 +191,39 @@ async def test_process_pair_failure_is_recorded(
         record = session.get(ScanRecord, "pair-bad")
     assert record.status is ScanStatus.FAILED
     assert record.error is not None
+
+
+async def test_process_pair_records_enhancement_level(
+    app_settings, session_factory, fake_provider, make_jpeg
+):
+    app_settings.input_dir.mkdir(parents=True, exist_ok=True)
+    pair = _make_pair(make_jpeg, app_settings.input_dir)
+    pipeline = Pipeline(
+        app_settings, fake_provider(_RICH_EXTRACTION), session_factory,
+        metadata_writer=_RecordingWriter(),
+    )
+
+    # app_settings defaults default_enhancement_level to "basic".
+    result = await pipeline.process_pair(pair)
+    assert result.enhancement_level is EnhancementLevel.BASIC
+
+    with session_factory() as session:
+        record = session.get(ScanRecord, "pair-1")
+    assert record.enhancement_level == "basic"
+
+
+async def test_process_pair_enhancement_level_override(
+    app_settings, session_factory, fake_provider, make_jpeg
+):
+    app_settings.input_dir.mkdir(parents=True, exist_ok=True)
+    pair = _make_pair(make_jpeg, app_settings.input_dir)
+    pipeline = Pipeline(
+        app_settings, fake_provider(_RICH_EXTRACTION), session_factory,
+        metadata_writer=_RecordingWriter(),
+    )
+
+    result = await pipeline.process_pair(pair, enhancement_level=EnhancementLevel.NONE)
+    assert result.enhancement_level is EnhancementLevel.NONE
 
 
 async def test_process_directory(app_settings, session_factory, fake_provider, make_jpeg):

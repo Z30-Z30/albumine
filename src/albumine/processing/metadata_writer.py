@@ -55,6 +55,7 @@ class PhotoMetadata:
     # --- AlbuMine provenance (custom XMP namespace) --------------------------
     ai_provider: str | None = None
     ai_model: str | None = None
+    enhancement_level: str | None = None
     processing_version: str = __version__
     source_files: list[str] = field(default_factory=list)
 
@@ -118,6 +119,8 @@ def build_exiftool_args(
         args.append(f"-XMP-albumine:AiProvider={metadata.ai_provider.strip()}")
     if _has_text(metadata.ai_model):
         args.append(f"-XMP-albumine:AiModel={metadata.ai_model.strip()}")
+    if _has_text(metadata.enhancement_level):
+        args.append(f"-XMP-albumine:EnhancementLevel={metadata.enhancement_level.strip()}")
     args.append(f"-XMP-albumine:ProcessingVersion={metadata.processing_version}")
     for source in metadata.source_files:
         if _has_text(source):

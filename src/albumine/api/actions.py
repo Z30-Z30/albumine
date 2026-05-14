@@ -18,6 +18,7 @@ from albumine.api.deps import (
     get_session_factory,
     templates,
 )
+from albumine.config import EnhancementLevel
 from albumine.db.engine import SessionFactory
 from albumine.logging import get_logger
 from albumine.pipeline import Pipeline, pair_from_record
@@ -68,16 +69,31 @@ async def reprocess_pair(
     pair_id: str,
     session_factory: Annotated[SessionFactory, Depends(get_session_factory)],
     redis: Annotated[ArqRedis | None, Depends(get_redis)],
+    enhancement_level: Annotated[str, Form()] = "",
 ) -> HTMLResponse:
-    """Enqueue a forced re-processing of one pair."""
+    """Enqueue a forced re-processing of one pair, optionally at a given level."""
     record = fetch_record(session_factory, pair_id)
     if redis is None:
         return _flash("error", "Queue nicht verfügbar — Redis ist offline.")
+
+    try:
+        level = EnhancementLevel(enhancement_level) if enhancement_level else None
+    except ValueError:
+        return _flash("error", f"Unbekannte Verbesserungs-Stufe: {enhancement_level}")
+
     pair = pair_from_record(record)
     await redis.enqueue_job(
-        "process_pair_task", pair.as_dict(), force=True, _job_id=f"pair:{pair_id}"
+        "process_pair_task",
+        pair.as_dict(),
+        force=True,
+        enhancement_level=str(level) if level else None,
+        _job_id=f"pair:{pair_id}",
     )
-    _log.info("actions.reprocess_enqueued", pair_id=pair_id)
+    _log.info(
+        "actions.reprocess_enqueued",
+        pair_id=pair_id,
+        level=str(level) if level else "default",
+    )
     return _flash("ok", "Re-Processing wurde eingereiht.")
 
 

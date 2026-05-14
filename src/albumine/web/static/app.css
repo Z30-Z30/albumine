@@ -155,6 +155,29 @@ button:hover { filter: brightness(1.1); }
 }
 .correction-form button { align-self: flex-start; }
 
+/* --- reprocess form --- */
+.reprocess-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+.reprocess-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-weight: 600;
+}
+.reprocess-form select {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    border-radius: 4px;
+    padding: 0.5rem;
+    font: inherit;
+}
+
 /* --- provenance --- */
 .provenance dl {
     display: grid;

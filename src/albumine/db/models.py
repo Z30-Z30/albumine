@@ -72,6 +72,7 @@ class ScanRecord(SQLModel, table=True):
     # --- provenance ----------------------------------------------------------
     ai_provider: str | None = None
     ai_model: str | None = None
+    enhancement_level: str = "none"  # the level actually applied
     extraction_fallback: bool = False  # Tesseract fallback was used
     error: str | None = None
 
