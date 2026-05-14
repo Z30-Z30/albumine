@@ -23,6 +23,7 @@ dependencies = [
     "redis>=5.2",
     "pypdf>=5.1",           # pure-python PDF page counting / splitting
     "watchdog>=6.0",        # cross-platform watch-folder (inotify on Linux)
+    "pillow>=11.0",         # image loading / processing
 ]
 
 [project.optional-dependencies]

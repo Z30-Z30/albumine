@@ -101,3 +101,31 @@ Trennzeichen — so wird z. B. `banana.jpg` nicht fälschlich als Paar erkannt.
 **Idempotenz:** Jedes `ScanPair` bekommt eine `pair_id`, die aus dem
 *Inhalts-Hash* (SHA-256) der Quelldateien plus den Seitenindizes abgeleitet
 wird. Re-Ingest derselben Dateien ⇒ dieselbe `pair_id` ⇒ keine Duplikate.
+
+## Metadaten-Layer (Phase 3)
+
+**Datum-Parsing** (`parsing/date_parser.py`): wandelt Freitext von der
+Rückseite (`"3.5.85"`, `"Mai '73"`, `"Sommer 1962"`, `"ca. 1970"`,
+`"15. März 1980"`) in ein `ParsedDate` um — mit ISO-String in der tatsächlich
+ermittelten Präzision (`YYYY-MM-DD` / `YYYY-MM` / `YYYY`), einer Confidence
+(`high`/`medium`/`low`) und einem konkreten `datetime` für EXIF. Unvollständige
+Angaben werden mit Defaults gefüllt: nur Jahr → `01.07.JAHR 12:00`, nur Monat →
+Monatsmitte. Zweistellige Jahre werden als 19xx interpretiert (Familienalben).
+Der Parser erfindet keine Präzision — `"Sommer 1962"` bleibt jahresgenau.
+
+**Metadaten-Writer** (`processing/metadata_writer.py`): schreibt via ExifTool
+in die Bilddatei. Aufgeteilt in einen reinen Argument-Builder
+(`build_exiftool_args`, ohne ExifTool testbar) und den Subprozess-Aufruf
+(`write_metadata`). Geschrieben werden:
+
+| Ziel                      | Quelle                              |
+|---------------------------|-------------------------------------|
+| `EXIF:DateTimeOriginal`   | geparstes Datum                     |
+| `IPTC:Caption-Abstract`   | Rohtext der Rückseite               |
+| `IPTC:Keywords` / `XMP-dc:Subject` | Personen, Event, Ort       |
+| `XMP-dc:Description`      | strukturierte Beschreibung          |
+| `XMP-albumine:*`          | Confidence, AI-Provider/-Modell, Verarbeitungs-Version, Quelldateien |
+
+Der `XMP-albumine`-Namespace wird über `exiftool_albumine.config` definiert.
+IPTC wird mit `CodedCharacterSet=UTF8` geschrieben, damit Umlaute korrekt sind.
+Optional kann eine `.xmp`-Sidecar-Datei mitgeschrieben werden.

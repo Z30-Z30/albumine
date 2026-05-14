@@ -48,3 +48,16 @@ def make_image() -> Callable[[Path, bytes], Path]:
         return path
 
     return _make
+
+
+@pytest.fixture
+def make_jpeg() -> Callable[[Path], Path]:
+    """Return a factory that writes a tiny valid JPEG and returns its path."""
+    from PIL import Image
+
+    def _make(path: Path) -> Path:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (16, 16), color=(120, 90, 60)).save(path, "JPEG")
+        return path
+
+    return _make
