@@ -6,7 +6,8 @@
   with CHANGEME:
     * <Repository>        — the published image (e.g. ghcr.io/<you>/albumine:latest)
     * <Support> / <Project> — your forum thread / repository
-    * <Icon>              — a hosted PNG icon URL
+    * <Icon>              — a hosted icon URL; the project icon lives at
+                            src/albumine/web/static/logo.svg (host it as a PNG)
   See docs/INSTALL-UNRAID.md for details.
 
   This is the all-in-one container: it bundles Redis, the ARQ worker and the

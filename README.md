@@ -1,7 +1,12 @@
+<img src="src/albumine/web/static/logo.svg" alt="AlbuMine" width="96" align="left">
+
 # AlbuMine
 
 Selbst-hostbare Web-App zur **Digitalisierung und Anreicherung alter
-Familienalben**. AlbuMine überwacht einen Ordner mit Foto-Scans und führt
+Familienalben**.
+
+<br clear="left">
+ AlbuMine überwacht einen Ordner mit Foto-Scans und führt
 **Duplex-Scans** — Vorderseite (das Foto) und Rückseite (handschriftliche Notiz
 mit Datum/Ort/Personen) — automatisch zu einer einzigen, mit Metadaten
 angereicherten Bilddatei zusammen.

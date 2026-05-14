@@ -4,13 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}AlbuMine{% endblock %}</title>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="/static/logo.svg">
     <script src="/static/htmx.min.js"></script>
     <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
     <header>
-        <a href="/" class="brand">AlbuMine</a>
+        <a href="/" class="brand">
+            <img src="/static/logo.svg" alt="" class="brand-logo">
+            AlbuMine
+        </a>
         <nav>
             <a href="/">Galerie</a>
             <a href="/status">Status</a>

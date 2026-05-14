@@ -33,10 +33,18 @@ header {
     background: var(--surface);
 }
 header .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--accent);
     text-decoration: none;
+}
+header .brand-logo {
+    width: 1.9rem;
+    height: 1.9rem;
+    display: block;
 }
 header nav { display: flex; gap: 1.2rem; }
 header nav a { color: var(--fg); text-decoration: none; }
