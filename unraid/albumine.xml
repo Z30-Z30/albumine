@@ -2,27 +2,19 @@
 <!--
   Unraid Community Applications template for AlbuMine.
 
-  Before publishing / using this template, replace the placeholder URLs marked
-  with CHANGEME:
-    * <Repository>        — the published image (e.g. ghcr.io/<you>/albumine:latest)
-    * <Support> / <Project> — your forum thread / repository
-    * <Icon>              — a hosted icon URL; the project icon lives at
-                            src/albumine/web/static/logo.svg (host it as a PNG)
-  See docs/INSTALL-UNRAID.md for details.
-
   This is the all-in-one container: it bundles Redis, the ARQ worker and the
   web app, so no separate Redis container is required.
 -->
 <Container version="2">
   <Name>AlbuMine</Name>
-  <Repository>CHANGEME/albumine:latest</Repository>
-  <Registry>https://hub.docker.com/r/CHANGEME/albumine</Registry>
+  <Repository>ghcr.io/z30-z30/albumine:latest</Repository>
+  <Registry>https://github.com/Z30-Z30/albumine/pkgs/container/albumine</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>CHANGEME-forum-thread-url</Support>
-  <Project>CHANGEME-repository-url</Project>
+  <Support>https://github.com/Z30-Z30/albumine/issues</Support>
+  <Project>https://github.com/Z30-Z30/albumine</Project>
   <Overview>
     AlbuMine digitalisiert und reichert alte Familienalben an. Es überwacht
     einen Input-Ordner mit Foto-Scans und führt Duplex-Scans (Vorderseite =
@@ -35,8 +27,8 @@
   </Overview>
   <Category>MediaApp:Photos Tools:</Category>
   <WebUI>http://[IP]:[PORT:8765]/</WebUI>
-  <TemplateURL>CHANGEME-raw-url-to-this-template</TemplateURL>
-  <Icon>CHANGEME-hosted-icon-png-url</Icon>
+  <TemplateURL>https://raw.githubusercontent.com/Z30-Z30/albumine/master/unraid/albumine.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/Z30-Z30/albumine/master/docs/images/albumine-icon.png</Icon>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>

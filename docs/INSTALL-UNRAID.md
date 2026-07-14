@@ -13,21 +13,23 @@ Redis-Container nötig.
 
 ## Image bereitstellen
 
-Es gibt (noch) kein offiziell gehostetes Image. Bis dahin selbst bauen und in
-eine Registry pushen, auf die der Unraid-Server Zugriff hat:
+Das Image wird bei jedem Push auf `master` automatisch per GitHub Actions
+gebaut und auf der GitHub Container Registry veröffentlicht:
+
+```
+ghcr.io/z30-z30/albumine:latest
+```
+
+Alternativ lässt es sich weiterhin selbst bauen und in eine eigene Registry
+pushen:
 
 ```bash
-# Multi-Arch-Build (amd64 zwingend, arm64 optional)
 docker buildx build \
-  --platform linux/amd64,linux/arm64 \
+  --platform linux/amd64 \
   -f docker/Dockerfile \
   -t <registry>/albumine:latest \
   --push .
 ```
-
-Danach in `unraid/albumine.xml` alle mit `CHANGEME` markierten Felder anpassen
-(`<Repository>`, `<Registry>`, `<Support>`, `<Project>`, `<Icon>`,
-`<TemplateURL>`).
 
 ## Installation über Community Applications
 
@@ -102,7 +104,7 @@ docker run -d --name albumine \
   -v /mnt/user/scans/eingang:/input \
   -v /mnt/user/fotos/album-digital:/output \
   -v /mnt/user/appdata/albumine:/config \
-  <registry>/albumine:latest
+  ghcr.io/z30-z30/albumine:latest
 ```
 
 ## Erste Schritte
