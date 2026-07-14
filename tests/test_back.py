@@ -59,3 +59,71 @@ async def test_extract_back_raises_when_fallback_also_fails(
 
     with pytest.raises(AIProviderError):
         await extract_back(PageRef(image), provider)
+
+
+# --- Orientation normalisation -----------------------------------------------
+
+
+def _patch_scores(monkeypatch, scores):
+    """Feed normalize_orientation one score per probed angle (0, 90, 180, 270)."""
+    remaining = iter(scores)
+    monkeypatch.setattr(back_module, "_score_text", lambda _img: next(remaining))
+
+
+def test_normalize_orientation_rotates_upside_down_scan(monkeypatch):
+    from PIL import Image
+
+    _patch_scores(monkeypatch, [0, 2, 40, 1])
+    source = Image.new("RGB", (40, 20))
+
+    result, degrees = back_module.normalize_orientation(source)
+
+    assert degrees == 180
+    assert result.size == (40, 20)
+
+
+def test_normalize_orientation_rotates_sideways_scan(monkeypatch):
+    from PIL import Image
+
+    _patch_scores(monkeypatch, [1, 35, 0, 3])
+    source = Image.new("RGB", (40, 20))
+
+    result, degrees = back_module.normalize_orientation(source)
+
+    assert degrees == 90
+    assert result.size == (20, 40)
+
+
+def test_normalize_orientation_keeps_image_when_no_clear_winner(monkeypatch):
+    from PIL import Image
+
+    _patch_scores(monkeypatch, [30, 31, 33, 29])
+    source = Image.new("RGB", (40, 20))
+
+    result, degrees = back_module.normalize_orientation(source)
+
+    assert degrees == 0
+    assert result is source
+
+
+def test_normalize_orientation_keeps_image_on_weak_signal(monkeypatch):
+    from PIL import Image
+
+    _patch_scores(monkeypatch, [0, 0, 5, 0])  # below _ORIENT_MIN_SCORE
+    source = Image.new("RGB", (40, 20))
+
+    _, degrees = back_module.normalize_orientation(source)
+
+    assert degrees == 0
+
+
+def test_normalize_orientation_without_tesseract_is_a_no_op(monkeypatch):
+    from PIL import Image
+
+    monkeypatch.setattr(back_module, "_score_text", lambda _img: None)
+    source = Image.new("RGB", (40, 20))
+
+    result, degrees = back_module.normalize_orientation(source)
+
+    assert degrees == 0
+    assert result is source

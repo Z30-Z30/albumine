@@ -17,6 +17,7 @@ from typing import Any
 
 from arq import cron
 from arq.connections import RedisSettings
+from arq.worker import func
 
 from albumine.ai import build_provider
 from albumine.config import EnhancementLevel, get_settings
@@ -90,7 +91,10 @@ async def _on_shutdown(ctx: dict[str, Any]) -> None:
 class WorkerSettings:
     """ARQ worker configuration (referenced by ``arq albumine.tasks.WorkerSettings``)."""
 
-    functions = [process_pair_task, scan_input_task]
+    # scan_input_task keeps no result: its ``_job_id`` dedup ("scan-input") must
+    # only cover queued/running scans, not block manual rescans for the whole
+    # keep_result window after a scan finished.
+    functions = [process_pair_task, func(scan_input_task, keep_result=0)]
     on_startup = _on_startup
     on_shutdown = _on_shutdown
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)

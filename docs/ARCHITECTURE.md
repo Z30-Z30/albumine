@@ -174,7 +174,10 @@ extract_back     ├─► reconcile_date ─► PhotoMetadata ─► write_meta
   Foto aus dem Scan-Hintergrund (Auto-Crop + Deskew in einem Perspektiv-Warp,
   OpenCV). Farbkorrektur/Upscaling sind höhere Stufen → spätere Phase.
 - **`processing/back.py`** — OCR-Orchestrator: Vision-LLM zuerst, bei Ausfall
-  Tesseract-Fallback (nur Rohtext, Pair bleibt `needs_review`).
+  Tesseract-Fallback (nur Rohtext, Pair bleibt `needs_review`). Vorab wird die
+  Orientierung normalisiert: alle vier Drehungen werden auf einer verkleinerten
+  Kopie per Tesseract bewertet und nur bei klarem Gewinner rotiert — quer oder
+  kopfüber gescannte Rückseiten kommen so aufrecht beim Vision-LLM an.
 - **`reconcile_date`** — kombiniert die LLM-Datumslesung mit dem
   deterministischen `date_parser`; finale Confidence = die schwächere von beiden.
 - **`db/ScanRecord`** — eine Tabelle, Primärschlüssel `pair_id` (inhalts-

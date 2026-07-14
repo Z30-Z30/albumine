@@ -110,7 +110,12 @@ async def rescan_input(
     """Trigger a re-scan of the input folder."""
     if redis is None:
         return _flash("error", t("flash.queue_unavailable"))
-    await redis.enqueue_job("scan_input_task", _job_id="scan-input")
+    # The fixed job id guards against parallel scans: ARQ returns None instead
+    # of enqueueing when a scan is already queued or running.
+    job = await redis.enqueue_job("scan_input_task", _job_id="scan-input")
+    if job is None:
+        _log.info("actions.rescan_already_queued")
+        return _flash("warn", t("flash.rescan_already_running"))
     _log.info("actions.rescan_enqueued")
     return _flash("ok", t("flash.rescan_started"))
 

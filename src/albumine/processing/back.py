@@ -22,6 +22,15 @@ _log = get_logger(__name__)
 
 _TESSERACT_LANG = "deu"
 
+# Orientation probing: scans of photo backs often land sideways or upside down
+# in the scanner. Before handing the image to the vision provider we OCR a
+# downscaled copy in all four orientations and keep the one with the most
+# legible text — but only when the winner is clear, so an already-correct scan
+# is never touched.
+_ORIENT_MAX_DIM = 1200
+_ORIENT_MIN_SCORE = 10
+_ORIENT_MIN_ADVANTAGE = 1.5
+
 
 @dataclass
 class BackResult:
@@ -85,6 +94,59 @@ async def extract_back(
         )
 
 
+def normalize_orientation(image: Image.Image) -> tuple[Image.Image, int]:
+    """Rotate a back scan so its text reads upright.
+
+    Scores all four orientations on a downscaled copy and rotates only when a
+    non-zero orientation is clearly better than the original. Returns the
+    (possibly rotated) image and the applied rotation in degrees
+    (counter-clockwise; 0 = unchanged).
+    """
+    probe = image.copy()
+    probe.thumbnail((_ORIENT_MAX_DIM, _ORIENT_MAX_DIM))
+
+    scores: dict[int, int] = {}
+    for angle in (0, 90, 180, 270):
+        rotated = probe if angle == 0 else probe.rotate(angle, expand=True)
+        score = _score_text(rotated)
+        if score is None:  # Tesseract unavailable — leave the image alone
+            return image, 0
+        scores[angle] = score
+
+    best = max(scores, key=lambda a: scores[a])
+    if (
+        best == 0
+        or scores[best] < _ORIENT_MIN_SCORE
+        or scores[best] < _ORIENT_MIN_ADVANTAGE * max(scores[0], 1)
+    ):
+        return image, 0
+    return image.rotate(best, expand=True), best
+
+
+def _score_text(image: Image.Image) -> int | None:
+    """How much legible text Tesseract sees in ``image``; None if unavailable.
+
+    The score is the total character count of words recognised with reasonable
+    confidence — enough signal to compare orientations even on handwriting.
+    """
+    try:
+        import pytesseract
+    except ImportError:
+        return None
+
+    try:
+        data = pytesseract.image_to_data(
+            image, lang=_TESSERACT_LANG, output_type=pytesseract.Output.DICT
+        )
+    except Exception:
+        return None
+    return sum(
+        len(word.strip())
+        for word, conf in zip(data["text"], data["conf"], strict=False)
+        if word.strip() and float(conf) > 30
+    )
+
+
 class TesseractError(RuntimeError):
     """Raised when Tesseract OCR is unavailable or fails."""
 
@@ -113,6 +175,11 @@ def ocr_with_tesseract(image_bytes: bytes) -> str:
 def _load_jpeg_bytes(page_ref: PageRef) -> bytes:
     """Load a page (image or PDF page) and return it as in-memory JPEG bytes."""
     image = load_source(page_ref).convert("RGB")
+    image, degrees = normalize_orientation(image)
+    if degrees:
+        _log.info(
+            "back.orientation_corrected", source=str(page_ref.path), degrees=degrees
+        )
     buffer = io.BytesIO()
     image.save(buffer, "JPEG", quality=95)
     return buffer.getvalue()
