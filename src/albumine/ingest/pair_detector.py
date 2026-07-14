@@ -10,8 +10,12 @@ Heuristics, in priority order:
 5. **Image naming pair** → two images sharing a base name with side markers
    ``a``/``b`` (after a digit) or ``front``/``back`` (after a separator)
    → ``IMAGE_PAIR``.
-6. **Lone image, no marker** → front only (``SINGLE_IMAGE``).
-7. **Image with a side marker but no partner / conflicting markers**
+6. **Duplex-scanner suffix pair** → ``BASE.jpg`` + ``BASE_001.jpg`` (the
+   convention of document scanners: front, then back as ``_001``)
+   → ``IMAGE_PAIR``. Only applies when *both* files exist; a lone ``X_001``
+   stays a single image (it may just be sequence numbering).
+7. **Lone image, no marker** → front only (``SINGLE_IMAGE``).
+8. **Image with a side marker but no partner / conflicting markers**
    → ``AMBIGUOUS``, needs review.
 
 Anything flagged ``needs_review`` is left for the user to confirm or correct in
@@ -48,6 +52,12 @@ _SIDE_AFTER_SEP = re.compile(
 )
 _FRONT_TOKENS = {"a", "front", "vorne", "vorderseite"}
 _BACK_TOKENS = {"b", "back", "hinten", "rueckseite"}
+
+# Duplex-scanner suffix: document scanners emit "BASE.jpg" for the front and
+# "BASE_001.jpg" for the back of the same sheet. The suffix alone is a weak
+# signal (it may be plain sequence numbering), so it only pairs when the
+# matching base file exists next to it.
+_NUMERIC_SUFFIX = re.compile(r"^(?P<base>.+?)_(?P<num>\d{3})$")
 
 
 def detect_pairs(paths: Iterable[Path]) -> list[ScanPair]:
@@ -153,9 +163,50 @@ def _pairs_from_images(images: Iterable[Path]) -> list[ScanPair]:
     pairs: list[ScanPair] = []
     for group in groups.values():
         pairs.extend(_resolve_image_group(group))
+    pairs.extend(_pairs_from_numeric_suffixes(singles))
+    return pairs
+
+
+def _pairs_from_numeric_suffixes(singles: list[Path]) -> list[ScanPair]:
+    """Pair ``BASE`` + ``BASE_001`` duplex-scanner files among marker-less images.
+
+    Images that take part in no such pair are emitted as ``SINGLE_IMAGE``.
+    """
+    by_stem = {(img.parent, img.stem.lower()): img for img in singles}
+    suffixed: dict[tuple[Path, str], list[Path]] = defaultdict(list)
+    for img in singles:
+        match = _NUMERIC_SUFFIX.match(img.stem)
+        if match:
+            base_key = (img.parent, match.group("base").lower())
+            if base_key in by_stem:
+                suffixed[base_key].append(img)
+
+    pairs: list[ScanPair] = []
+    claimed: set[Path] = set()
+    for base_key, kids in sorted(suffixed.items(), key=lambda kv: str(kv[0][1])):
+        front = by_stem[base_key]
+        kids = [k for k in kids if k not in claimed]
+        if front in claimed or not kids:
+            continue
+        if len(kids) == 1 and kids[0].stem.lower().endswith("_001"):
+            back = kids[0]
+            claimed.update((front, back))
+            pairs.append(_pair(PageRef(front), PageRef(back),
+                               DetectionMethod.IMAGE_PAIR, (front, back)))
+        else:
+            # More than one numbered sibling (X_001, X_002, …): the sheet
+            # assignment is unclear — surface every file for manual review.
+            claimed.update((front, *kids))
+            for image in sorted([front, *kids]):
+                pairs.append(_pair(PageRef(image), None,
+                                   DetectionMethod.AMBIGUOUS, (image,),
+                                   note="Mehrere nummerierte Scan-Dateien zur "
+                                        "selben Basis — bitte Zuordnung manuell "
+                                        "festlegen"))
     for image in singles:
-        pairs.append(_pair(PageRef(image), None, DetectionMethod.SINGLE_IMAGE,
-                           (image,)))
+        if image not in claimed:
+            pairs.append(_pair(PageRef(image), None, DetectionMethod.SINGLE_IMAGE,
+                               (image,)))
     return pairs
 
 

@@ -149,6 +149,59 @@ def test_conflicting_markers_surface_every_file(make_image, tmp_path):
     assert all(p.needs_review for p in pairs)
 
 
+# --- Duplex-scanner suffix cases (BASE.jpg + BASE_001.jpg) -------------------
+
+
+def test_scanner_suffix_pair(make_image, tmp_path):
+    """Document scanners write the front as BASE.jpg and the back as BASE_001.jpg."""
+    front = make_image(tmp_path / "13102024111936.jpg", b"front")
+    back = make_image(tmp_path / "13102024111936_001.jpg", b"back")
+
+    pairs = detect_pairs([front, back])
+
+    assert len(pairs) == 1
+    pair = pairs[0]
+    assert pair.method is DetectionMethod.IMAGE_PAIR
+    assert pair.front.path == front
+    assert pair.back is not None and pair.back.path == back
+    assert pair.needs_review is False
+
+
+def test_lone_numeric_suffix_stays_single(make_image, tmp_path):
+    """A lone X_001 may be plain sequence numbering — no pairing, no review."""
+    image = make_image(tmp_path / "12102024112035_001.jpg", b"x")
+
+    pairs = detect_pairs([image])
+
+    assert len(pairs) == 1
+    assert pairs[0].method is DetectionMethod.SINGLE_IMAGE
+    assert pairs[0].needs_review is False
+
+
+def test_sequence_numbering_without_base_stays_single(make_image, tmp_path):
+    """scan_001/scan_002 without scan.jpg is a sequence, not duplex pairs."""
+    one = make_image(tmp_path / "scan_001.jpg", b"1")
+    two = make_image(tmp_path / "scan_002.jpg", b"2")
+
+    pairs = detect_pairs([one, two])
+
+    assert len(pairs) == 2
+    assert all(p.method is DetectionMethod.SINGLE_IMAGE for p in pairs)
+
+
+def test_multiple_numeric_siblings_need_review(make_image, tmp_path):
+    """BASE + _001 + _002: sheet assignment is unclear — surface all files."""
+    base = make_image(tmp_path / "urlaub.jpg", b"0")
+    one = make_image(tmp_path / "urlaub_001.jpg", b"1")
+    two = make_image(tmp_path / "urlaub_002.jpg", b"2")
+
+    pairs = detect_pairs([base, one, two])
+
+    assert len(pairs) == 3
+    assert all(p.method is DetectionMethod.AMBIGUOUS for p in pairs)
+    assert all(p.needs_review for p in pairs)
+
+
 # --- Misc -------------------------------------------------------------------
 
 

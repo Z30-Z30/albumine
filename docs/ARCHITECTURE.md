@@ -91,6 +91,7 @@ des `/input`-Ordners. `detect_pairs()` gruppiert die Dateien dann in
 | PDF, 1 Seite                    | `single_pdf`    | nur Front                        |
 | PDF, ungerade > 1 Seiten        | `ambiguous`     | `needs_review` — manueller Override |
 | Bildpaar (`…a`/`…b`, `…_front`/`…_back`) | `image_pair` | Front + Back                  |
+| Scanner-Duplex (`BASE.jpg` + `BASE_001.jpg`) | `image_pair` | Front + Back — nur wenn beide existieren; `X_001` allein bleibt Einzelbild |
 | Einzelbild ohne Marker          | `single_image`  | nur Front                        |
 | Bild mit Marker ohne Partner / Konflikt | `ambiguous` | `needs_review`               |
 
