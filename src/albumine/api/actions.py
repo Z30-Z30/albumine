@@ -87,13 +87,19 @@ async def reprocess_pair(
         return _flash("error", t("flash.unknown_level", value=enhancement_level))
 
     pair = pair_from_record(record)
-    await redis.enqueue_job(
+    # The fixed job id dedups against queued/running jobs — and, because
+    # process_pair_task keeps its result for an hour, also against recently
+    # finished ones (intentional: throttles the 15-minute cron re-enqueues).
+    job = await redis.enqueue_job(
         "process_pair_task",
         pair.as_dict(),
         force=True,
         enhancement_level=str(level) if level else None,
         _job_id=f"pair:{pair_id}",
     )
+    if job is None:
+        _log.info("actions.reprocess_already_queued", pair_id=pair_id)
+        return _flash("warn", t("flash.reprocess_already_running"))
     _log.info(
         "actions.reprocess_enqueued",
         pair_id=pair_id,

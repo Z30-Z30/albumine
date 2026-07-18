@@ -81,7 +81,9 @@
   "flash.correction_saved": "Corrección guardada y escrita en el archivo de imagen.",
   "flash.correction_failed": "No se pudieron escribir los metadatos: {error}",
   "flash.queue_unavailable": "Cola no disponible — Redis está desconectado.",
+  "flash.reprocess_already_running": "El procesamiento de este par ya está en cola, en curso o acaba de finalizar. Inténtalo de nuevo más tarde.",
   "flash.reprocess_queued": "El reprocesamiento se ha puesto en cola.",
+  "flash.rescan_already_running": "Ya hay un escaneo en cola o en curso.",
   "flash.rescan_started": "Reescaneando la carpeta de entrada.",
   "flash.unknown_level": "Nivel de mejora desconocido: {value}",
 

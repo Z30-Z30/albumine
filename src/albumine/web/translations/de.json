@@ -81,7 +81,9 @@
   "flash.correction_saved": "Korrektur gespeichert und in die Bilddatei geschrieben.",
   "flash.correction_failed": "Metadaten konnten nicht geschrieben werden: {error}",
   "flash.queue_unavailable": "Queue nicht verfügbar — Redis ist offline.",
+  "flash.reprocess_already_running": "Die Verarbeitung dieses Paares ist bereits eingereiht, läuft noch oder wurde gerade erst abgeschlossen. Bitte später erneut versuchen.",
   "flash.reprocess_queued": "Re-Processing wurde eingereiht.",
+  "flash.rescan_already_running": "Ein Scan läuft bereits oder ist eingereiht.",
   "flash.rescan_started": "Input-Ordner wird neu eingelesen.",
   "flash.unknown_level": "Unbekannte Verbesserungs-Stufe: {value}",
 

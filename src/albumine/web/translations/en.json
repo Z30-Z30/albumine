@@ -81,7 +81,9 @@
   "flash.correction_saved": "Correction saved and written into the image file.",
   "flash.correction_failed": "Could not write metadata: {error}",
   "flash.queue_unavailable": "Queue unavailable — Redis is offline.",
+  "flash.reprocess_already_running": "Processing for this pair is already queued or running, or has just finished. Please try again later.",
   "flash.reprocess_queued": "Reprocessing has been queued.",
+  "flash.rescan_already_running": "A scan is already queued or running.",
   "flash.rescan_started": "Rescanning the input folder.",
   "flash.unknown_level": "Unknown enhancement level: {value}",
 

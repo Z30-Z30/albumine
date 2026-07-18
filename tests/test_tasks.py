@@ -62,3 +62,19 @@ async def test_scan_input_task_enqueues_one_job_per_pair(
     function, _args, job_id = redis.jobs[0]
     assert function == "process_pair_task"
     assert job_id.startswith("pair:")
+
+
+def test_worker_keeps_no_result_for_scan_input_task():
+    """The scan job must not keep its result: ARQ dedups on the fixed job id
+    against kept results too, which would silently drop manual rescans for the
+    whole keep_result window after a scan finished."""
+    from arq.worker import Function
+
+    from albumine.tasks import WorkerSettings
+
+    scan_fn = next(
+        f
+        for f in WorkerSettings.functions
+        if isinstance(f, Function) and f.name == "scan_input_task"
+    )
+    assert scan_fn.keep_result_s == 0

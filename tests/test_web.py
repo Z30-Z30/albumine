@@ -171,6 +171,91 @@ def test_rescan_without_redis_reports_offline(app_settings):
     assert "Redis ist offline" in response.text
 
 
+class _FakeArqRedis:
+    """Stands in for ArqRedis: dedups on job id like the real enqueue_job."""
+
+    def __init__(self):
+        self.jobs: list[str] = []
+
+    async def enqueue_job(self, function, *args, _job_id=None, **kwargs):
+        if _job_id in self.jobs:
+            return None  # arq: a job with this id is already queued/running
+        self.jobs.append(_job_id)
+        return object()
+
+
+def test_rescan_enqueues_scan_job(app_settings):
+    from fastapi.testclient import TestClient
+
+    from albumine.api.deps import get_redis
+
+    app = create_app(app_settings)
+    redis = _FakeArqRedis()
+    app.dependency_overrides[get_redis] = lambda: redis
+    with TestClient(app) as client:
+        response = client.post("/rescan")
+    assert response.status_code == 200
+    assert "flash-ok" in response.text
+    assert "Input-Ordner wird neu eingelesen" in response.text
+    assert redis.jobs == ["scan-input"]
+
+
+def test_reprocess_enqueues_process_job(app_settings, make_jpeg):
+    from fastapi.testclient import TestClient
+
+    from albumine.api.deps import get_redis
+
+    app = create_app(app_settings)
+    redis = _FakeArqRedis()
+    app.dependency_overrides[get_redis] = lambda: redis
+    with TestClient(app) as client:
+        _seed_record(app, app_settings, make_jpeg)
+        response = client.post("/pair/pair-1/reprocess")
+    assert response.status_code == 200
+    assert "flash-ok" in response.text
+    assert "Re-Processing wurde eingereiht" in response.text
+    assert redis.jobs == ["pair:pair-1"]
+
+
+def test_reprocess_while_job_pending_reports_already_running(app_settings, make_jpeg):
+    from fastapi.testclient import TestClient
+
+    from albumine.api.deps import get_redis
+
+    app = create_app(app_settings)
+    redis = _FakeArqRedis()
+    app.dependency_overrides[get_redis] = lambda: redis
+    with TestClient(app) as client:
+        _seed_record(app, app_settings, make_jpeg)
+        first = client.post("/pair/pair-1/reprocess")
+        second = client.post("/pair/pair-1/reprocess")
+    assert "flash-ok" in first.text
+    assert second.status_code == 200
+    assert "flash-warn" in second.text
+    assert "läuft noch oder wurde gerade erst abgeschlossen" in second.text
+    # The duplicate click must not have enqueued a second job.
+    assert redis.jobs == ["pair:pair-1"]
+
+
+def test_rescan_while_scan_pending_reports_already_running(app_settings):
+    from fastapi.testclient import TestClient
+
+    from albumine.api.deps import get_redis
+
+    app = create_app(app_settings)
+    redis = _FakeArqRedis()
+    app.dependency_overrides[get_redis] = lambda: redis
+    with TestClient(app) as client:
+        first = client.post("/rescan")
+        second = client.post("/rescan")
+    assert "flash-ok" in first.text
+    assert second.status_code == 200
+    assert "flash-warn" in second.text
+    assert "Ein Scan läuft bereits" in second.text
+    # The duplicate click must not have enqueued a second job.
+    assert redis.jobs == ["scan-input"]
+
+
 def test_404_renders_styled_error_page(app_settings):
     from fastapi.testclient import TestClient
 

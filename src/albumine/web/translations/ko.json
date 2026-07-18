@@ -81,7 +81,9 @@
   "flash.correction_saved": "수정이 저장되어 이미지 파일에 기록되었습니다.",
   "flash.correction_failed": "메타데이터를 기록할 수 없습니다: {error}",
   "flash.queue_unavailable": "대기열을 사용할 수 없습니다 — Redis가 오프라인입니다.",
+  "flash.reprocess_already_running": "이 페어의 처리가 이미 대기열에 있거나 진행 중이거나 방금 완료되었습니다. 나중에 다시 시도해 주세요.",
   "flash.reprocess_queued": "재처리가 대기열에 추가되었습니다.",
+  "flash.rescan_already_running": "스캔이 이미 대기열에 있거나 진행 중입니다.",
   "flash.rescan_started": "입력 폴더를 다시 스캔하는 중입니다.",
   "flash.unknown_level": "알 수 없는 향상 수준: {value}",
 

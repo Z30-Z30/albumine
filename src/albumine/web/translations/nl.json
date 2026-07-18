@@ -81,7 +81,9 @@
   "flash.correction_saved": "Correctie opgeslagen en in het afbeeldingsbestand geschreven.",
   "flash.correction_failed": "Kan metadata niet schrijven: {error}",
   "flash.queue_unavailable": "Wachtrij niet beschikbaar — Redis is offline.",
+  "flash.reprocess_already_running": "De verwerking van dit paar staat al in de wachtrij, loopt nog of is net voltooid. Probeer het later opnieuw.",
   "flash.reprocess_queued": "Herverwerking is in de wachtrij geplaatst.",
+  "flash.rescan_already_running": "Er staat al een scan in de wachtrij of er loopt er een.",
   "flash.rescan_started": "Invoermap wordt opnieuw gescand.",
   "flash.unknown_level": "Onbekend verbeteringsniveau: {value}",
 

@@ -81,7 +81,9 @@
   "flash.correction_saved": "Исправление сохранено и записано в файл изображения.",
   "flash.correction_failed": "Не удалось записать метаданные: {error}",
   "flash.queue_unavailable": "Очередь недоступна — Redis отключён.",
+  "flash.reprocess_already_running": "Обработка этой пары уже в очереди, выполняется или только что завершилась. Повторите попытку позже.",
   "flash.reprocess_queued": "Переобработка поставлена в очередь.",
+  "flash.rescan_already_running": "Сканирование уже поставлено в очередь или выполняется.",
   "flash.rescan_started": "Повторное сканирование папки ввода.",
   "flash.unknown_level": "Неизвестный уровень улучшения: {value}",
 

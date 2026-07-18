@@ -81,7 +81,9 @@
   "flash.correction_saved": "Correzione salvata e scritta nel file immagine.",
   "flash.correction_failed": "Impossibile scrivere i metadati: {error}",
   "flash.queue_unavailable": "Coda non disponibile — Redis è offline.",
+  "flash.reprocess_already_running": "L'elaborazione di questa coppia è già in coda, in corso o è appena terminata. Riprova più tardi.",
   "flash.reprocess_queued": "La rielaborazione è stata messa in coda.",
+  "flash.rescan_already_running": "Una scansione è già in coda o in corso.",
   "flash.rescan_started": "Riscansione della cartella di input in corso.",
   "flash.unknown_level": "Livello di miglioramento sconosciuto: {value}",
 

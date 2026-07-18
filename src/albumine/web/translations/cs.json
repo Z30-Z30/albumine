@@ -81,7 +81,9 @@
   "flash.correction_saved": "Oprava uložena a zapsána do souboru obrázku.",
   "flash.correction_failed": "Metadata se nepodařilo zapsat: {error}",
   "flash.queue_unavailable": "Fronta není dostupná — Redis je offline.",
+  "flash.reprocess_already_running": "Zpracování tohoto páru už je ve frontě, probíhá, nebo bylo právě dokončeno. Zkuste to prosím později.",
   "flash.reprocess_queued": "Opětovné zpracování bylo zařazeno do fronty.",
+  "flash.rescan_already_running": "Skenování už je ve frontě nebo probíhá.",
   "flash.rescan_started": "Probíhá opětovné prohledání vstupní složky.",
   "flash.unknown_level": "Neznámá úroveň vylepšení: {value}",
 

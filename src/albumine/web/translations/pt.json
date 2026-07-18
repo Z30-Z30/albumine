@@ -81,7 +81,9 @@
   "flash.correction_saved": "Correção guardada e escrita no ficheiro de imagem.",
   "flash.correction_failed": "Não foi possível escrever os metadados: {error}",
   "flash.queue_unavailable": "Fila indisponível — o Redis está offline.",
+  "flash.reprocess_already_running": "O processamento deste par já está na fila, em andamento ou acabou de ser concluído. Tente novamente mais tarde.",
   "flash.reprocess_queued": "O reprocessamento foi colocado na fila.",
+  "flash.rescan_already_running": "Uma varredura já está na fila ou em andamento.",
   "flash.rescan_started": "A reanalisar a pasta de entrada.",
   "flash.unknown_level": "Nível de melhoria desconhecido: {value}",
 

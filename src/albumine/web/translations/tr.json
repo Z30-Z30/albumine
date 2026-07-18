@@ -81,7 +81,9 @@
   "flash.correction_saved": "Düzeltme kaydedildi ve görsel dosyasına yazıldı.",
   "flash.correction_failed": "Üst veriler yazılamadı: {error}",
   "flash.queue_unavailable": "Kuyruk kullanılamıyor — Redis çevrimdışı.",
+  "flash.reprocess_already_running": "Bu çiftin işlenmesi zaten kuyrukta, devam ediyor veya az önce tamamlandı. Lütfen daha sonra tekrar deneyin.",
   "flash.reprocess_queued": "Yeniden işleme kuyruğa alındı.",
+  "flash.rescan_already_running": "Bir tarama zaten kuyrukta veya devam ediyor.",
   "flash.rescan_started": "Giriş klasörü yeniden taranıyor.",
   "flash.unknown_level": "Bilinmeyen iyileştirme düzeyi: {value}",
 

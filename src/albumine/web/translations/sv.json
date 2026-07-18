@@ -81,7 +81,9 @@
   "flash.correction_saved": "Korrigeringen sparades och skrevs in i bildfilen.",
   "flash.correction_failed": "Det gick inte att skriva metadata: {error}",
   "flash.queue_unavailable": "Kön är inte tillgänglig — Redis är offline.",
+  "flash.reprocess_already_running": "Bearbetningen av det här paret är redan köad, pågår eller har precis avslutats. Försök igen senare.",
   "flash.reprocess_queued": "Ombearbetningen har lagts i kön.",
+  "flash.rescan_already_running": "En skanning är redan köad eller pågår.",
   "flash.rescan_started": "Skannar om inmatningsmappen.",
   "flash.unknown_level": "Okänd förbättringsnivå: {value}",
 

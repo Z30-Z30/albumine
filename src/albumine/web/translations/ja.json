@@ -81,7 +81,9 @@
   "flash.correction_saved": "修正を保存し、画像ファイルに書き込みました。",
   "flash.correction_failed": "メタデータを書き込めませんでした: {error}",
   "flash.queue_unavailable": "キューを利用できません — Redis がオフラインです。",
+  "flash.reprocess_already_running": "このペアの処理は既にキューに追加されているか、実行中、または完了直後です。しばらくしてから再試行してください。",
   "flash.reprocess_queued": "再処理をキューに追加しました。",
+  "flash.rescan_already_running": "スキャンは既にキューに追加されているか実行中です。",
   "flash.rescan_started": "入力フォルダーを再スキャンしています。",
   "flash.unknown_level": "不明な補正レベル: {value}",
 

@@ -81,7 +81,9 @@
   "flash.correction_saved": "更正已保存并写入图像文件。",
   "flash.correction_failed": "无法写入元数据：{error}",
   "flash.queue_unavailable": "队列不可用 — Redis 已离线。",
+  "flash.reprocess_already_running": "该配对的处理已在队列中、正在进行或刚刚完成。请稍后重试。",
   "flash.reprocess_queued": "重新处理已加入队列。",
+  "flash.rescan_already_running": "扫描已在队列中或正在进行。",
   "flash.rescan_started": "正在重新扫描输入文件夹。",
   "flash.unknown_level": "未知的增强级别：{value}",
 

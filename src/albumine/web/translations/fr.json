@@ -81,7 +81,9 @@
   "flash.correction_saved": "Correction enregistrée et écrite dans le fichier image.",
   "flash.correction_failed": "Impossible d'écrire les métadonnées : {error}",
   "flash.queue_unavailable": "File indisponible — Redis est hors ligne.",
+  "flash.reprocess_already_running": "Le traitement de cette paire est déjà en file d'attente, en cours, ou vient de se terminer. Veuillez réessayer plus tard.",
   "flash.reprocess_queued": "Le retraitement a été mis en file d'attente.",
+  "flash.rescan_already_running": "Une analyse est déjà en file d'attente ou en cours.",
   "flash.rescan_started": "Réanalyse du dossier d'entrée.",
   "flash.unknown_level": "Niveau d'amélioration inconnu : {value}",
 
