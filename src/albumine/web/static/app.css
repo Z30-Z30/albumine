@@ -269,3 +269,27 @@ button:hover { filter: brightness(1.1); }
 .flash-ok { background: #2f5135; color: #cdeccf; }
 .flash-warn { background: #574a2a; color: #f0dca8; }
 .flash-error { background: #5a2f2f; color: #f3c9c9; }
+
+/* --- history register --- */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+.history-table th,
+.history-table td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+.history-table th {
+    color: var(--muted);
+    font-weight: 600;
+}
+.history-table tbody tr:last-child td { border-bottom: none; }
+.history-time { white-space: nowrap; color: var(--muted); }
+.history-detail { color: var(--muted); }

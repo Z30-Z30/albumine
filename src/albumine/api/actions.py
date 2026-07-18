@@ -10,6 +10,7 @@ from collections.abc import Callable
 from typing import Annotated
 
 from arq import ArqRedis
+from arq.constants import job_key_prefix, result_key_prefix
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 
@@ -87,16 +88,24 @@ async def reprocess_pair(
         return _flash("error", t("flash.unknown_level", value=enhancement_level))
 
     pair = pair_from_record(record)
-    # The fixed job id dedups against queued/running jobs — and, because
-    # process_pair_task keeps its result for an hour, also against recently
-    # finished ones (intentional: throttles the 15-minute cron re-enqueues).
-    job = await redis.enqueue_job(
-        "process_pair_task",
-        pair.as_dict(),
-        force=True,
-        enhancement_level=str(level) if level else None,
-        _job_id=f"pair:{pair_id}",
-    )
+    job_id = f"pair:{pair_id}"
+
+    async def _enqueue() -> object | None:
+        return await redis.enqueue_job(
+            "process_pair_task",
+            pair.as_dict(),
+            force=True,
+            enhancement_level=str(level) if level else None,
+            _job_id=job_id,
+        )
+
+    job = await _enqueue()
+    if job is None and not await redis.exists(job_key_prefix + job_id):
+        # Only a stored result blocks the job id (process_pair_task keeps its
+        # result for an hour so the 15-minute cron scan is throttled). A manual
+        # reprocess must win over that throttle: clear the result and retry.
+        await redis.delete(result_key_prefix + job_id)
+        job = await _enqueue()
     if job is None:
         _log.info("actions.reprocess_already_queued", pair_id=pair_id)
         return _flash("warn", t("flash.reprocess_already_running"))

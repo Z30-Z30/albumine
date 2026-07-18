@@ -102,6 +102,28 @@ class ScanRecord(SQLModel, table=True):
         self.updated_at = _utcnow()
 
 
+class ProcessingEvent(SQLModel, table=True):
+    """One entry in the processing history register.
+
+    Appended whenever the pipeline finishes (or fails) a pair and whenever a
+    human saves a manual correction — a durable audit trail, while
+    :class:`ScanRecord` only holds the current state.
+    """
+
+    __tablename__ = "processing_events"
+
+    id: int | None = Field(default=None, primary_key=True)
+    pair_id: str = Field(index=True)
+    action: str  # "processed" | "failed" | "correction"
+    status: str | None = None  # resulting ScanStatus
+    ai_provider: str | None = None
+    ai_model: str | None = None
+    enhancement_level: str | None = None
+    used_fallback: bool = False
+    detail: str | None = None  # error text, or the fields a correction changed
+    created_at: datetime = Field(default_factory=_utcnow, index=True)
+
+
 class AppSetting(SQLModel, table=True):
     """A single runtime configuration override.
 

@@ -193,6 +193,53 @@ async def test_process_pair_failure_is_recorded(
     assert record.error is not None
 
 
+# --- processing history register --------------------------------------------
+
+
+async def test_success_and_failure_append_history_events(
+    app_settings, session_factory, fake_provider, make_jpeg
+):
+    from sqlmodel import select
+
+    from albumine.db import ProcessingEvent
+
+    app_settings.input_dir.mkdir(parents=True, exist_ok=True)
+    pair = _make_pair(make_jpeg, app_settings.input_dir)
+    provider = fake_provider(_RICH_EXTRACTION)
+    pipeline = Pipeline(app_settings, provider, session_factory, metadata_writer=_RecordingWriter())
+
+    await pipeline.process_pair(pair)
+    # skip (already DONE) must not append an event; force re-run must.
+    await pipeline.process_pair(pair)
+    await pipeline.process_pair(pair, force=True)
+
+    garbage = app_settings.input_dir / "broken.jpg"
+    garbage.write_bytes(b"not an image")
+    bad = ScanPair(
+        pair_id="pair-bad",
+        front=PageRef(garbage),
+        back=None,
+        method=DetectionMethod.SINGLE_IMAGE,
+        source_files=(garbage,),
+    )
+    await pipeline.process_pair(bad)
+
+    with session_factory() as session:
+        events = session.exec(
+            select(ProcessingEvent).order_by(ProcessingEvent.id)
+        ).all()
+
+    assert [(e.pair_id, e.action) for e in events] == [
+        ("pair-1", "processed"),
+        ("pair-1", "processed"),
+        ("pair-bad", "failed"),
+    ]
+    assert events[0].status == "done"
+    assert events[0].ai_provider == "fake"
+    assert events[0].ai_model == "fake-vision-1"
+    assert events[2].detail  # the error text is recorded
+
+
 async def test_process_pair_records_enhancement_level(
     app_settings, session_factory, fake_provider, make_jpeg
 ):

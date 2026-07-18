@@ -24,7 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from albumine.ai import build_provider
-from albumine.api import actions, gallery, settings_panel, status
+from albumine.api import actions, gallery, history, settings_panel, status
 from albumine.api.deps import templates
 from albumine.config import Settings, get_settings
 from albumine.db import create_db_engine, init_db, make_session_factory
@@ -169,6 +169,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     app.include_router(gallery.router)
+    app.include_router(history.router)
     app.include_router(actions.router)
     app.include_router(status.router)
     app.include_router(settings_panel.router)

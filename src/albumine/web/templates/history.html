@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_badge %}
+
+{% block title %}AlbuMine — {{ t("history.title") }}{% endblock %}
+
+{% block content %}
+<h2>{{ t("history.title") }}</h2>
+
+{% if not events %}
+<p>{{ t("history.empty") }}</p>
+{% else %}
+<table class="history-table">
+    <thead>
+        <tr>
+            <th>{{ t("history.col.time") }}</th>
+            <th>{{ t("history.col.pair") }}</th>
+            <th>{{ t("history.col.action") }}</th>
+            <th>{{ t("history.col.status") }}</th>
+            <th>{{ t("history.col.detail") }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for event in events %}
+        <tr>
+            <td class="history-time">{{ event.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td><a href="/pair/{{ event.pair_id }}">{{ event.pair_id }}</a></td>
+            <td>{{ t("history.action." ~ event.action) }}</td>
+            <td>{% if event.status %}{{ status_badge(event.status, t) }}{% else %}{{ t("common.none") }}{% endif %}</td>
+            <td class="history-detail">
+                {% if event.action == "processed" %}
+                    {{ event.ai_provider or t("common.none") }}{% if event.ai_model %} ({{ event.ai_model }}){% endif %},
+                    {{ t("field.enhancement") | lower }}: {{ event.enhancement_level }}
+                    {%- if event.used_fallback %}, {{ t("history.fallback_used") }}{% endif %}
+                    {%- if event.detail %} — {{ event.detail }}{% endif %}
+                {% elif event.action == "correction" %}
+                    {% if event.detail %}{{ t("history.changed_fields", fields=event.detail) }}{% else %}{{ t("history.no_changes") }}{% endif %}
+                {% else %}
+                    {{ event.detail or t("common.none") }}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

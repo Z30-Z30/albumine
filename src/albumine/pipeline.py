@@ -21,7 +21,7 @@ from pathlib import Path
 
 from albumine.ai.base import AIProviderError, BackExtraction, ExtractedDate, VisionProvider
 from albumine.config import EnhancementLevel, Settings
-from albumine.db import ScanRecord, ScanStatus
+from albumine.db import ProcessingEvent, ScanRecord, ScanStatus
 from albumine.db.engine import SessionFactory
 from albumine.db.settings_store import effective_settings
 from albumine.ingest import ScanPair, scan_directory
@@ -288,6 +288,14 @@ class Pipeline:
             if record is None or not record.output_path:
                 return None
 
+            before = {
+                "raw_text": record.raw_text,
+                "date": record.date_original_text,
+                "location": record.location,
+                "people": record.people,
+                "event": record.event,
+                "notes": record.notes,
+            }
             parsed_date = parse_date(date_text)
             record.raw_text = raw_text.strip() or None
             record.location = location.strip() or None
@@ -311,10 +319,27 @@ class Pipeline:
                 Path(record.output_path), metadata, settings.write_sidecar
             )
 
+            after = {
+                "raw_text": record.raw_text,
+                "date": record.date_original_text,
+                "location": record.location,
+                "people": record.people,
+                "event": record.event,
+                "notes": record.notes,
+            }
+            changed = [name for name, value in after.items() if value != before[name]]
             session.add(record)
+            session.add(
+                ProcessingEvent(
+                    pair_id=pair_id,
+                    action="correction",
+                    status=str(record.status),
+                    detail=", ".join(changed) or None,
+                )
+            )
             session.commit()
             session.refresh(record)
-            _log.info("pipeline.manual_correction", pair_id=pair_id)
+            _log.info("pipeline.manual_correction", pair_id=pair_id, changed=changed)
             return record
 
     @staticmethod
@@ -369,6 +394,14 @@ class Pipeline:
             record.error = error
             record.touch()
             session.add(record)
+            session.add(
+                ProcessingEvent(
+                    pair_id=pair_id,
+                    action="failed",
+                    status=str(ScanStatus.FAILED),
+                    detail=error,
+                )
+            )
             session.commit()
 
     def _persist_success(
@@ -410,6 +443,18 @@ class Pipeline:
             record.status = status
             record.touch()
             session.add(record)
+            session.add(
+                ProcessingEvent(
+                    pair_id=pair.pair_id,
+                    action="processed",
+                    status=str(status),
+                    ai_provider=metadata.ai_provider,
+                    ai_model=metadata.ai_model,
+                    enhancement_level=str(enhancement_level),
+                    used_fallback=used_fallback,
+                    detail=provider_error,
+                )
+            )
             session.commit()
 
     def _output_path_for(self, pair: ScanPair, settings: Settings) -> Path:

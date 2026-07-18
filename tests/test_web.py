@@ -124,6 +124,18 @@ def test_correction_updates_record(app_settings, make_jpeg, monkeypatch):
     assert record.people == ["Oma", "Opa"]
     assert record.date_iso == "1980-07"
 
+    # The correction is recorded in the processing history register.
+    from sqlmodel import select
+
+    from albumine.db import ProcessingEvent
+
+    with app.state.session_factory() as session:
+        events = session.exec(select(ProcessingEvent)).all()
+    assert len(events) == 1
+    assert events[0].action == "correction"
+    assert events[0].pair_id == "pair-1"
+    assert "location" in events[0].detail
+
 
 def test_status_dashboard_renders(app_settings, make_jpeg):
     from fastapi.testclient import TestClient
@@ -172,16 +184,33 @@ def test_rescan_without_redis_reports_offline(app_settings):
 
 
 class _FakeArqRedis:
-    """Stands in for ArqRedis: dedups on job id like the real enqueue_job."""
+    """Stands in for ArqRedis: dedups on job id like the real enqueue_job.
+
+    ``jobs`` models queued/running jobs (arq's ``arq:job:<id>`` keys),
+    ``results`` models stored results (``arq:result:<id>``) — enqueue_job
+    returns None if either exists, exactly like arq.
+    """
 
     def __init__(self):
         self.jobs: list[str] = []
+        self.results: set[str] = set()
 
     async def enqueue_job(self, function, *args, _job_id=None, **kwargs):
-        if _job_id in self.jobs:
-            return None  # arq: a job with this id is already queued/running
+        if _job_id in self.jobs or _job_id in self.results:
+            return None
         self.jobs.append(_job_id)
         return object()
+
+    async def exists(self, key):
+        if key.startswith("arq:job:"):
+            return int(key.removeprefix("arq:job:") in self.jobs)
+        if key.startswith("arq:result:"):
+            return int(key.removeprefix("arq:result:") in self.results)
+        return 0
+
+    async def delete(self, key):
+        if key.startswith("arq:result:"):
+            self.results.discard(key.removeprefix("arq:result:"))
 
 
 def test_rescan_enqueues_scan_job(app_settings):
@@ -232,9 +261,74 @@ def test_reprocess_while_job_pending_reports_already_running(app_settings, make_
     assert "flash-ok" in first.text
     assert second.status_code == 200
     assert "flash-warn" in second.text
-    assert "läuft noch oder wurde gerade erst abgeschlossen" in second.text
+    assert "läuft bereits oder ist eingereiht" in second.text
     # The duplicate click must not have enqueued a second job.
     assert redis.jobs == ["pair:pair-1"]
+
+
+def test_reprocess_clears_stale_result_and_enqueues(app_settings, make_jpeg):
+    """A stored job result (kept up to an hour after completion) must not block
+    a manual reprocess: the handler clears it and enqueues anyway."""
+    from fastapi.testclient import TestClient
+
+    from albumine.api.deps import get_redis
+
+    app = create_app(app_settings)
+    redis = _FakeArqRedis()
+    redis.results.add("pair:pair-1")  # finished earlier, result still stored
+    app.dependency_overrides[get_redis] = lambda: redis
+    with TestClient(app) as client:
+        _seed_record(app, app_settings, make_jpeg)
+        response = client.post("/pair/pair-1/reprocess")
+    assert response.status_code == 200
+    assert "flash-ok" in response.text
+    assert redis.jobs == ["pair:pair-1"]
+    assert redis.results == set()
+
+
+def test_history_page_lists_events(app_settings):
+    from fastapi.testclient import TestClient
+
+    from albumine.db import ProcessingEvent
+
+    app = create_app(app_settings)
+    with TestClient(app) as client:
+        with app.state.session_factory() as session:
+            session.add(
+                ProcessingEvent(
+                    pair_id="pair-1",
+                    action="processed",
+                    status="done",
+                    ai_provider="ollama",
+                    ai_model="qwen2.5vl",
+                    enhancement_level="basic",
+                )
+            )
+            session.add(
+                ProcessingEvent(
+                    pair_id="pair-1",
+                    action="correction",
+                    status="done",
+                    detail="location, event",
+                )
+            )
+            session.commit()
+        response = client.get("/history")
+    assert response.status_code == 200
+    assert "Verarbeitungs-Verlauf" in response.text
+    assert "pair-1" in response.text
+    assert "Verarbeitet" in response.text
+    assert "Manuelle Korrektur" in response.text
+    assert "Geändert: location, event" in response.text
+
+
+def test_history_page_empty(app_settings):
+    from fastapi.testclient import TestClient
+
+    with TestClient(create_app(app_settings)) as client:
+        response = client.get("/history")
+    assert response.status_code == 200
+    assert "Noch keine Verarbeitungs-Einträge" in response.text
 
 
 def test_rescan_while_scan_pending_reports_already_running(app_settings):
