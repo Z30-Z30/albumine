@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Re-Processing wurde eingereiht.",
   "flash.rescan_already_running": "Ein Scan läuft bereits oder ist eingereiht.",
   "flash.rescan_started": "Input-Ordner wird neu eingelesen.",
+  "flash.restart_failed": "Neustart fehlgeschlagen: {error}",
+  "flash.restart_triggered": "Server startet neu — die Seite lädt automatisch neu, sobald er wieder erreichbar ist.",
+  "flash.restart_unavailable": "Neustart aus der Oberfläche ist in diesem Deployment nicht verfügbar.",
   "flash.unknown_level": "Unbekannte Verbesserungs-Stufe: {value}",
 
   "history.title": "Verarbeitungs-Verlauf",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Geändert: {fields}",
   "history.no_changes": "keine Änderungen",
 
+  "pull.already_running": "Es läuft bereits ein Modell-Download — bitte warten.",
+  "pull.empty_model": "Bitte zuerst einen Modellnamen eingeben.",
+  "pull.error": "Modell-Download fehlgeschlagen: {error}",
+  "pull.success": "Modell {model} ist bereit.",
+
   "settings.title": "Einstellungen",
   "settings.save": "Einstellungen speichern",
   "settings.saved": "Einstellungen gespeichert.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "Neustart erforderlich",
   "settings.secret_placeholder": "•••• (gesetzt — leer lassen, um es beizubehalten)",
   "settings.secret_unset": "nicht gesetzt",
+  "settings.restart_server": "Server neu starten",
+  "settings.restart_confirm": "Server wirklich neu starten? Laufende Verarbeitungen werden unterbrochen.",
+  "settings.ollama_pull": "Modell herunterladen & bereitstellen",
 
   "settings.category.general": "Allgemein",
   "settings.category.ai": "AI / Vision-Backend",

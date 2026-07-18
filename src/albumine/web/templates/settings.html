@@ -55,6 +55,18 @@
                 {% if f.description %}
                 <small class="setting-hint">{{ f.description }}</small>
                 {% endif %}
+                {% if f.key == "ollama_vision_model" %}
+                <div class="ollama-pull">
+                    <button type="button" hx-post="/settings/ollama/pull"
+                            hx-include="#set-ollama_vision_model"
+                            hx-target="#ollama-pull-status" hx-swap="innerHTML">
+                        {{ t("settings.ollama_pull") }}
+                    </button>
+                    <div id="ollama-pull-status"
+                         hx-get="/settings/ollama/pull-status"
+                         hx-trigger="load" hx-swap="innerHTML"></div>
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
@@ -62,4 +74,14 @@
     {% endfor %}
     <button type="submit">{{ t("settings.save") }}</button>
 </form>
+
+{% if restart_available %}
+<section class="settings-restart">
+    <button hx-post="/settings/restart" hx-target="#restart-flash" hx-swap="innerHTML"
+            hx-confirm="{{ t('settings.restart_confirm') }}">
+        {{ t("settings.restart_server") }}
+    </button>
+    <span id="restart-flash"></span>
+</section>
+{% endif %}
 {% endblock %}

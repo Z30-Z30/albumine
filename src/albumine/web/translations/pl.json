@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Ponowne przetwarzanie zostało dodane do kolejki.",
   "flash.rescan_already_running": "Skanowanie jest już w kolejce lub w toku.",
   "flash.rescan_started": "Ponowne skanowanie folderu wejściowego.",
+  "flash.restart_failed": "Ponowne uruchomienie nie powiodło się: {error}",
+  "flash.restart_triggered": "Serwer uruchamia się ponownie — strona przeładuje się automatycznie, gdy będzie znów dostępny.",
+  "flash.restart_unavailable": "Ponowne uruchamianie z interfejsu nie jest dostępne w tej instalacji.",
   "flash.unknown_level": "Nieznany poziom ulepszania: {value}",
 
   "history.title": "Historia przetwarzania",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Zmieniono: {fields}",
   "history.no_changes": "brak zmian",
 
+  "pull.already_running": "Pobieranie modelu już trwa — poczekaj.",
+  "pull.empty_model": "Najpierw podaj nazwę modelu.",
+  "pull.error": "Pobieranie modelu nie powiodło się: {error}",
+  "pull.success": "Model {model} jest gotowy.",
+
   "settings.title": "Ustawienia",
   "settings.save": "Zapisz ustawienia",
   "settings.saved": "Ustawienia zapisane.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "wymagany restart",
   "settings.secret_placeholder": "•••• (ustawione — pozostaw puste, aby zachować)",
   "settings.secret_unset": "nieustawione",
+  "settings.restart_server": "Uruchom ponownie serwer",
+  "settings.restart_confirm": "Czy na pewno uruchomić serwer ponownie? Trwające przetwarzanie zostanie przerwane.",
+  "settings.ollama_pull": "Pobierz i udostępnij model",
 
   "settings.category.general": "Ogólne",
   "settings.category.ai": "AI / backend wizyjny",

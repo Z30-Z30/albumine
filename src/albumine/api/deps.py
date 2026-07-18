@@ -31,7 +31,7 @@ from albumine.i18n import (
 if TYPE_CHECKING:
     from arq import ArqRedis
 
-    from albumine.ai.base import VisionProvider
+    from albumine.ai.manager import ProviderManager
     from albumine.config import Settings
     from albumine.pipeline import Pipeline
 
@@ -79,9 +79,9 @@ def get_pipeline(request: Request) -> Pipeline:
     return request.app.state.pipeline
 
 
-def get_provider(request: Request) -> VisionProvider:
-    """The configured vision provider (used for health checks)."""
-    return request.app.state.provider
+def get_provider_manager(request: Request) -> ProviderManager:
+    """The provider manager (resolves the vision provider live)."""
+    return request.app.state.provider_manager
 
 
 def get_redis(request: Request) -> ArqRedis | None:

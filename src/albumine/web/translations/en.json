@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Reprocessing has been queued.",
   "flash.rescan_already_running": "A scan is already queued or running.",
   "flash.rescan_started": "Rescanning the input folder.",
+  "flash.restart_failed": "Restart failed: {error}",
+  "flash.restart_triggered": "Server is restarting — the page will reload automatically once it is back.",
+  "flash.restart_unavailable": "Restarting from the UI is not available in this deployment.",
   "flash.unknown_level": "Unknown enhancement level: {value}",
 
   "history.title": "Processing history",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Changed: {fields}",
   "history.no_changes": "no changes",
 
+  "pull.already_running": "A model download is already running — please wait.",
+  "pull.empty_model": "Enter a model name first.",
+  "pull.error": "Model download failed: {error}",
+  "pull.success": "Model {model} is ready.",
+
   "settings.title": "Settings",
   "settings.save": "Save settings",
   "settings.saved": "Settings saved.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "restart required",
   "settings.secret_placeholder": "•••• (set — leave empty to keep it)",
   "settings.secret_unset": "not set",
+  "settings.restart_server": "Restart server",
+  "settings.restart_confirm": "Really restart the server? Running processing will be interrupted.",
+  "settings.ollama_pull": "Download & provision model",
 
   "settings.category.general": "General",
   "settings.category.ai": "AI / vision backend",

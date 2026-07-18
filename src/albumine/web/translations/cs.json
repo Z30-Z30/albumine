@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Opětovné zpracování bylo zařazeno do fronty.",
   "flash.rescan_already_running": "Skenování už je ve frontě nebo probíhá.",
   "flash.rescan_started": "Probíhá opětovné prohledání vstupní složky.",
+  "flash.restart_failed": "Restart se nezdařil: {error}",
+  "flash.restart_triggered": "Server se restartuje — stránka se automaticky znovu načte, jakmile bude opět dostupný.",
+  "flash.restart_unavailable": "Restart z rozhraní není v této instalaci k dispozici.",
   "flash.unknown_level": "Neznámá úroveň vylepšení: {value}",
 
   "history.title": "Historie zpracování",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Změněno: {fields}",
   "history.no_changes": "beze změn",
 
+  "pull.already_running": "Stahování modelu už probíhá — vyčkejte.",
+  "pull.empty_model": "Nejprve zadejte název modelu.",
+  "pull.error": "Stažení modelu se nezdařilo: {error}",
+  "pull.success": "Model {model} je připraven.",
+
   "settings.title": "Nastavení",
   "settings.save": "Uložit nastavení",
   "settings.saved": "Nastavení uloženo.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "vyžaduje restart",
   "settings.secret_placeholder": "•••• (nastaveno — ponechte prázdné pro zachování)",
   "settings.secret_unset": "nenastaveno",
+  "settings.restart_server": "Restartovat server",
+  "settings.restart_confirm": "Opravdu restartovat server? Probíhající zpracování bude přerušeno.",
+  "settings.ollama_pull": "Stáhnout a připravit model",
 
   "settings.category.general": "Obecné",
   "settings.category.ai": "AI / vizuální backend",

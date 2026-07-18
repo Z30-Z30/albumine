@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "El reprocesamiento se ha puesto en cola.",
   "flash.rescan_already_running": "Ya hay un escaneo en cola o en curso.",
   "flash.rescan_started": "Reescaneando la carpeta de entrada.",
+  "flash.restart_failed": "Error al reiniciar: {error}",
+  "flash.restart_triggered": "El servidor se está reiniciando: la página se recargará automáticamente cuando vuelva a estar disponible.",
+  "flash.restart_unavailable": "Reiniciar desde la interfaz no está disponible en esta instalación.",
   "flash.unknown_level": "Nivel de mejora desconocido: {value}",
 
   "history.title": "Historial de procesamiento",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Cambiado: {fields}",
   "history.no_changes": "sin cambios",
 
+  "pull.already_running": "Ya hay una descarga de modelo en curso — espera.",
+  "pull.empty_model": "Introduce primero un nombre de modelo.",
+  "pull.error": "Error al descargar el modelo: {error}",
+  "pull.success": "El modelo {model} está listo.",
+
   "settings.title": "Ajustes",
   "settings.save": "Guardar ajustes",
   "settings.saved": "Ajustes guardados.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "requiere reinicio",
   "settings.secret_placeholder": "•••• (definido — dejar vacío para conservarlo)",
   "settings.secret_unset": "no definido",
+  "settings.restart_server": "Reiniciar servidor",
+  "settings.restart_confirm": "¿Reiniciar realmente el servidor? El procesamiento en curso se interrumpirá.",
+  "settings.ollama_pull": "Descargar y preparar modelo",
 
   "settings.category.general": "General",
   "settings.category.ai": "IA / backend de visión",

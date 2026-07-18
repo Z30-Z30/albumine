@@ -8,8 +8,9 @@ and :func:`effective_settings` merges them onto the base config.
 Each editable field is declared in :data:`EDITABLE_SETTINGS` with metadata —
 which category it belongs to, how to render it, whether it is a secret, and
 whether a change needs a container restart to take effect (everything that is
-read live by the pipeline applies immediately; provider construction, paths,
-ports and logging are resolved once at startup).
+read live by the pipeline applies immediately, and the AI provider is rebuilt
+on change by the ProviderManager; paths, ports and logging are resolved once
+at startup).
 """
 
 from __future__ import annotations
@@ -50,15 +51,17 @@ EDITABLE_SETTINGS: tuple[SettingField, ...] = (
                  ("DEBUG", "INFO", "WARNING", "ERROR"), restart_required=True),
     SettingField("log_json", "general", "bool", restart_required=True),
 
+    # AI fields apply live: the ProviderManager rebuilds the provider as soon
+    # as one of them changes (see albumine.ai.manager).
     SettingField("ai_provider", "ai", "choice",
-                 ("ollama", "anthropic", "openai_compat"), restart_required=True),
-    SettingField("ollama_host", "ai", "text", restart_required=True),
-    SettingField("ollama_vision_model", "ai", "text", restart_required=True),
-    SettingField("anthropic_api_key", "ai", "secret", restart_required=True, nullable=True),
-    SettingField("anthropic_model", "ai", "text", restart_required=True),
-    SettingField("openai_base_url", "ai", "text", restart_required=True, nullable=True),
-    SettingField("openai_api_key", "ai", "secret", restart_required=True, nullable=True),
-    SettingField("openai_model", "ai", "text", restart_required=True, nullable=True),
+                 ("ollama", "anthropic", "openai_compat")),
+    SettingField("ollama_host", "ai", "text"),
+    SettingField("ollama_vision_model", "ai", "text"),
+    SettingField("anthropic_api_key", "ai", "secret", nullable=True),
+    SettingField("anthropic_model", "ai", "text"),
+    SettingField("openai_base_url", "ai", "text", nullable=True),
+    SettingField("openai_api_key", "ai", "secret", nullable=True),
+    SettingField("openai_model", "ai", "text", nullable=True),
 
     SettingField("default_enhancement_level", "processing", "choice",
                  tuple(level.value for level in EnhancementLevel)),

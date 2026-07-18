@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "La rielaborazione è stata messa in coda.",
   "flash.rescan_already_running": "Una scansione è già in coda o in corso.",
   "flash.rescan_started": "Riscansione della cartella di input in corso.",
+  "flash.restart_failed": "Riavvio non riuscito: {error}",
+  "flash.restart_triggered": "Il server si sta riavviando: la pagina si ricaricherà automaticamente appena tornerà disponibile.",
+  "flash.restart_unavailable": "Il riavvio dall'interfaccia non è disponibile in questa installazione.",
   "flash.unknown_level": "Livello di miglioramento sconosciuto: {value}",
 
   "history.title": "Cronologia di elaborazione",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Modificato: {fields}",
   "history.no_changes": "nessuna modifica",
 
+  "pull.already_running": "È già in corso il download di un modello — attendere.",
+  "pull.empty_model": "Inserisci prima un nome di modello.",
+  "pull.error": "Download del modello non riuscito: {error}",
+  "pull.success": "Il modello {model} è pronto.",
+
   "settings.title": "Impostazioni",
   "settings.save": "Salva impostazioni",
   "settings.saved": "Impostazioni salvate.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "riavvio necessario",
   "settings.secret_placeholder": "•••• (impostato — lasciare vuoto per mantenerlo)",
   "settings.secret_unset": "non impostato",
+  "settings.restart_server": "Riavvia server",
+  "settings.restart_confirm": "Riavviare davvero il server? Le elaborazioni in corso verranno interrotte.",
+  "settings.ollama_pull": "Scarica e prepara il modello",
 
   "settings.category.general": "Generale",
   "settings.category.ai": "IA / backend di visione",

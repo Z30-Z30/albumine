@@ -20,6 +20,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from albumine.ai.base import AIProviderError, BackExtraction, ExtractedDate, VisionProvider
+from albumine.ai.manager import ProviderManager
 from albumine.config import EnhancementLevel, Settings
 from albumine.db import ProcessingEvent, ScanRecord, ScanStatus
 from albumine.db.engine import SessionFactory
@@ -112,7 +113,7 @@ class Pipeline:
     def __init__(
         self,
         settings: Settings,
-        provider: VisionProvider,
+        provider: VisionProvider | ProviderManager,
         session_factory: SessionFactory,
         *,
         metadata_writer: MetadataWriter = _default_metadata_writer,
@@ -121,6 +122,12 @@ class Pipeline:
         self._provider = provider
         self._session_factory = session_factory
         self._write_metadata = metadata_writer
+
+    async def _resolve_provider(self) -> VisionProvider:
+        """The current provider — via the manager, so AI settings apply live."""
+        if isinstance(self._provider, ProviderManager):
+            return await self._provider.get()
+        return self._provider
 
     async def process_directory(
         self,
@@ -170,6 +177,7 @@ class Pipeline:
         self._mark_processing(pair)
 
         try:
+            provider = await self._resolve_provider()
             output_path = self._output_path_for(pair, settings)
             front_image = process_front(pair.front, auto_crop=settings.auto_crop)
             front_image, applied_level = apply_enhancement(
@@ -184,7 +192,7 @@ class Pipeline:
             if pair.back is not None:
                 back_result = await extract_back(
                     pair.back,
-                    self._provider,
+                    provider,
                     allow_fallback=settings.ai_fallback_enabled,
                 )
                 extraction = back_result.extraction
@@ -193,7 +201,7 @@ class Pipeline:
 
             parsed_date = reconcile_date(extraction.date)
             metadata = self._build_metadata(
-                pair, extraction, parsed_date, used_fallback, applied_level
+                pair, provider, extraction, parsed_date, used_fallback, applied_level
             )
             self._write_metadata(output_path, metadata, settings.write_sidecar)
         except (FrontProcessingError, AIProviderError, ExifToolError, OSError) as exc:
@@ -237,6 +245,7 @@ class Pipeline:
     def _build_metadata(
         self,
         pair: ScanPair,
+        provider: VisionProvider,
         extraction: BackExtraction,
         parsed_date: ParsedDate,
         used_fallback: bool,
@@ -253,8 +262,8 @@ class Pipeline:
             event=extraction.event,
             notes=extraction.notes,
             date=parsed_date if has_date else None,
-            ai_provider="tesseract" if used_fallback else self._provider.name,
-            ai_model=None if used_fallback else self._provider.model,
+            ai_provider="tesseract" if used_fallback else provider.name,
+            ai_model=None if used_fallback else provider.model,
             enhancement_level=str(enhancement_level),
             source_files=[str(p) for p in pair.source_files],
         )

@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Yeniden işleme kuyruğa alındı.",
   "flash.rescan_already_running": "Bir tarama zaten kuyrukta veya devam ediyor.",
   "flash.rescan_started": "Giriş klasörü yeniden taranıyor.",
+  "flash.restart_failed": "Yeniden başlatma başarısız: {error}",
+  "flash.restart_triggered": "Sunucu yeniden başlatılıyor — tekrar erişilebilir olduğunda sayfa otomatik olarak yenilenecek.",
+  "flash.restart_unavailable": "Arayüzden yeniden başlatma bu kurulumda kullanılamıyor.",
   "flash.unknown_level": "Bilinmeyen iyileştirme düzeyi: {value}",
 
   "history.title": "İşleme geçmişi",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Değiştirildi: {fields}",
   "history.no_changes": "değişiklik yok",
 
+  "pull.already_running": "Zaten bir model indirmesi sürüyor — lütfen bekleyin.",
+  "pull.empty_model": "Önce bir model adı girin.",
+  "pull.error": "Model indirme başarısız: {error}",
+  "pull.success": "{model} modeli hazır.",
+
   "settings.title": "Ayarlar",
   "settings.save": "Ayarları kaydet",
   "settings.saved": "Ayarlar kaydedildi.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "yeniden başlatma gerekli",
   "settings.secret_placeholder": "•••• (ayarlı — korumak için boş bırakın)",
   "settings.secret_unset": "ayarlı değil",
+  "settings.restart_server": "Sunucuyu yeniden başlat",
+  "settings.restart_confirm": "Sunucu gerçekten yeniden başlatılsın mı? Devam eden işlemler kesilecek.",
+  "settings.ollama_pull": "Modeli indir ve hazırla",
 
   "settings.category.general": "Genel",
   "settings.category.ai": "YZ / görü arka ucu",

@@ -1,0 +1,22 @@
+{# Status bar for an Ollama model pull. Re-polls itself while running. #}
+{% if state is none %}
+{% elif state.error %}
+<span class="flash flash-error">{{ t("pull.error", error=state.error) }}</span>
+{% elif state.done %}
+<span class="flash flash-ok">{{ t("pull.success", model=state.model) }}</span>
+{% else %}
+<div class="pull-progress"
+     hx-get="/settings/ollama/pull-status" hx-trigger="load delay:1s"
+     hx-target="#ollama-pull-status" hx-swap="innerHTML">
+    {% if already_running %}
+    <span class="flash flash-warn">{{ t("pull.already_running") }}</span>
+    {% endif %}
+    <div class="pull-bar">
+        <div class="pull-bar-fill{% if state.percent is none %} pull-bar-indeterminate{% endif %}"
+             {% if state.percent is not none %}style="width: {{ state.percent }}%"{% endif %}></div>
+    </div>
+    <small class="pull-status-text">
+        {{ state.model }}: {{ state.status }}{% if state.percent is not none %} — {{ state.percent }}%{% endif %}
+    </small>
+</div>
+{% endif %}

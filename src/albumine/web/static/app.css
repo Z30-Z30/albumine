@@ -293,3 +293,47 @@ button:hover { filter: brightness(1.1); }
 .history-table tbody tr:last-child td { border-bottom: none; }
 .history-time { white-space: nowrap; color: var(--muted); }
 .history-detail { color: var(--muted); }
+
+/* --- settings: server restart --- */
+.settings-restart {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* --- ollama model pull --- */
+.ollama-pull {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+.pull-progress {
+    width: 100%;
+    max-width: 28rem;
+}
+.pull-bar {
+    height: 0.5rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.pull-bar-fill {
+    height: 100%;
+    background: #355070;
+    transition: width 0.4s ease;
+}
+.pull-bar-indeterminate {
+    width: 30%;
+    animation: pull-slide 1.2s ease-in-out infinite alternate;
+}
+@keyframes pull-slide {
+    from { margin-left: 0; }
+    to { margin-left: 70%; }
+}
+.pull-status-text { color: var(--muted); }

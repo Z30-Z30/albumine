@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Переобробку додано до черги.",
   "flash.rescan_already_running": "Сканування вже в черзі або виконується.",
   "flash.rescan_started": "Повторне сканування теки вводу.",
+  "flash.restart_failed": "Не вдалося перезапустити: {error}",
+  "flash.restart_triggered": "Сервер перезапускається — сторінка автоматично перезавантажиться, щойно він знову стане доступним.",
+  "flash.restart_unavailable": "Перезапуск з інтерфейсу недоступний у цій інсталяції.",
   "flash.unknown_level": "Невідомий рівень покращення: {value}",
 
   "history.title": "Історія обробки",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Змінено: {fields}",
   "history.no_changes": "без змін",
 
+  "pull.already_running": "Завантаження моделі вже триває — зачекайте.",
+  "pull.empty_model": "Спочатку вкажіть назву моделі.",
+  "pull.error": "Не вдалося завантажити модель: {error}",
+  "pull.success": "Модель {model} готова.",
+
   "settings.title": "Налаштування",
   "settings.save": "Зберегти налаштування",
   "settings.saved": "Налаштування збережено.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "потрібен перезапуск",
   "settings.secret_placeholder": "•••• (задано — залиште порожнім, щоб зберегти)",
   "settings.secret_unset": "не задано",
+  "settings.restart_server": "Перезапустити сервер",
+  "settings.restart_confirm": "Справді перезапустити сервер? Поточну обробку буде перервано.",
+  "settings.ollama_pull": "Завантажити та підготувати модель",
 
   "settings.category.general": "Загальні",
   "settings.category.ai": "ШІ / бекенд зору",

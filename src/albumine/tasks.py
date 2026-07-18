@@ -19,7 +19,7 @@ from arq import cron
 from arq.connections import RedisSettings
 from arq.worker import func
 
-from albumine.ai import build_provider
+from albumine.ai.manager import ProviderManager
 from albumine.config import EnhancementLevel, get_settings
 from albumine.db import create_db_engine, init_db, make_session_factory
 from albumine.db.settings_store import effective_settings
@@ -74,17 +74,19 @@ async def _on_startup(ctx: dict[str, Any]) -> None:
     configure_logging(level=settings.log_level, json_output=settings.log_json)
     for directory in (settings.input_dir, settings.output_dir):
         directory.mkdir(parents=True, exist_ok=True)
-    provider = build_provider(settings)
+    # The manager resolves the provider per job, so AI-setting changes from the
+    # web settings panel apply to the worker without a restart.
+    provider_manager = ProviderManager(base, session_factory)
     ctx["settings"] = settings
-    ctx["provider"] = provider
-    ctx["pipeline"] = Pipeline(base, provider, session_factory)
+    ctx["provider_manager"] = provider_manager
+    ctx["pipeline"] = Pipeline(base, provider_manager, session_factory)
     _log.info("worker.started", ai_provider=settings.ai_provider)
 
 
 async def _on_shutdown(ctx: dict[str, Any]) -> None:
-    provider = ctx.get("provider")
-    if provider is not None:
-        await provider.aclose()
+    provider_manager = ctx.get("provider_manager")
+    if provider_manager is not None:
+        await provider_manager.aclose()
     _log.info("worker.stopped")
 
 

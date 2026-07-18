@@ -119,6 +119,15 @@ class Settings(BaseSettings):
         default="", description="Extra CLI args for GFPGAN, appended after -i/-o."
     )
 
+    # --- Server control ----------------------------------------------------
+    supervisor_url: str | None = Field(
+        default="http://127.0.0.1:9001/RPC2",
+        description=(
+            "supervisord XML-RPC URL for the in-app restart button "
+            "(all-in-one container). Set empty to disable the button."
+        ),
+    )
+
     # --- User interface ----------------------------------------------------
     ui_language: str = Field(
         default="de",

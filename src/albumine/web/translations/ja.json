@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "再処理をキューに追加しました。",
   "flash.rescan_already_running": "スキャンは既にキューに追加されているか実行中です。",
   "flash.rescan_started": "入力フォルダーを再スキャンしています。",
+  "flash.restart_failed": "再起動に失敗しました: {error}",
+  "flash.restart_triggered": "サーバーを再起動しています — 復旧次第、ページは自動的に再読み込みされます。",
+  "flash.restart_unavailable": "このデプロイではUIからの再起動は利用できません。",
   "flash.unknown_level": "不明な補正レベル: {value}",
 
   "history.title": "処理履歴",
@@ -102,6 +105,11 @@
   "history.changed_fields": "変更: {fields}",
   "history.no_changes": "変更なし",
 
+  "pull.already_running": "モデルのダウンロードは既に実行中です — お待ちください。",
+  "pull.empty_model": "先にモデル名を入力してください。",
+  "pull.error": "モデルのダウンロードに失敗しました: {error}",
+  "pull.success": "モデル {model} の準備ができました。",
+
   "settings.title": "設定",
   "settings.save": "設定を保存",
   "settings.saved": "設定を保存しました。",
@@ -110,6 +118,9 @@
   "settings.restart_required": "再起動が必要",
   "settings.secret_placeholder": "••••（設定済み — 維持するには空のままにします）",
   "settings.secret_unset": "未設定",
+  "settings.restart_server": "サーバーを再起動",
+  "settings.restart_confirm": "本当にサーバーを再起動しますか？実行中の処理は中断されます。",
+  "settings.ollama_pull": "モデルをダウンロードして準備",
 
   "settings.category.general": "全般",
   "settings.category.ai": "AI / ビジョンバックエンド",

@@ -23,7 +23,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from albumine.ai import build_provider
+from albumine.ai.manager import ProviderManager
 from albumine.api import actions, gallery, history, settings_panel, status
 from albumine.api.deps import templates
 from albumine.config import Settings, get_settings
@@ -54,13 +54,15 @@ async def lifespan(app: FastAPI):
     for directory in (settings.input_dir, settings.output_dir):
         directory.mkdir(parents=True, exist_ok=True)
 
-    provider = build_provider(settings)
+    # The manager builds the provider lazily and rebuilds it when AI settings
+    # change, so the settings panel applies without a restart.
+    provider_manager = ProviderManager(base, session_factory)
 
     app.state.session_factory = session_factory
-    app.state.provider = provider
+    app.state.provider_manager = provider_manager
     # The Pipeline keeps the *base* settings and re-resolves overrides per job,
     # so behaviour changes from the settings panel apply without a restart.
-    app.state.pipeline = Pipeline(base, provider, session_factory)
+    app.state.pipeline = Pipeline(base, provider_manager, session_factory)
     app.state.redis = await _connect_redis(settings)
     app.state.watcher = _start_watcher(settings, app.state.redis)
 
@@ -78,7 +80,7 @@ async def lifespan(app: FastAPI):
         app.state.watcher.stop()
     if app.state.redis is not None:
         await app.state.redis.close()
-    await provider.aclose()
+    await provider_manager.aclose()
     _log.info("albumine.shutdown")
 
 

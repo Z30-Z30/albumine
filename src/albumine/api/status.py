@@ -9,8 +9,13 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from sqlmodel import func, select
 
-from albumine.ai.base import VisionProvider
-from albumine.api.deps import get_provider, get_redis, get_session_factory, templates
+from albumine.ai.manager import ProviderManager
+from albumine.api.deps import (
+    get_provider_manager,
+    get_redis,
+    get_session_factory,
+    templates,
+)
 from albumine.db import ScanRecord, ScanStatus
 from albumine.db.engine import SessionFactory
 from albumine.logging import get_logger
@@ -63,10 +68,10 @@ async def status_dashboard(
 @router.get("/status/ai-health", response_class=HTMLResponse)
 async def ai_health(
     request: Request,
-    provider: Annotated[VisionProvider, Depends(get_provider)],
+    provider_manager: Annotated[ProviderManager, Depends(get_provider_manager)],
 ) -> HTMLResponse:
     """HTML fragment with the current AI-backend health (lazy-loaded)."""
-    health = await provider.health_check()
+    health = await provider_manager.health()
     return templates.TemplateResponse(
         request, "_ai_health.html", {"health": health}
     )

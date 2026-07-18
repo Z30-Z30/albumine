@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Переобработка поставлена в очередь.",
   "flash.rescan_already_running": "Сканирование уже поставлено в очередь или выполняется.",
   "flash.rescan_started": "Повторное сканирование папки ввода.",
+  "flash.restart_failed": "Не удалось перезапустить: {error}",
+  "flash.restart_triggered": "Сервер перезапускается — страница автоматически перезагрузится, как только он снова станет доступен.",
+  "flash.restart_unavailable": "Перезапуск из интерфейса недоступен в этой установке.",
   "flash.unknown_level": "Неизвестный уровень улучшения: {value}",
 
   "history.title": "История обработки",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Изменено: {fields}",
   "history.no_changes": "без изменений",
 
+  "pull.already_running": "Загрузка модели уже выполняется — подождите.",
+  "pull.empty_model": "Сначала укажите имя модели.",
+  "pull.error": "Не удалось скачать модель: {error}",
+  "pull.success": "Модель {model} готова.",
+
   "settings.title": "Настройки",
   "settings.save": "Сохранить настройки",
   "settings.saved": "Настройки сохранены.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "требуется перезапуск",
   "settings.secret_placeholder": "•••• (задано — оставьте пустым, чтобы сохранить)",
   "settings.secret_unset": "не задано",
+  "settings.restart_server": "Перезапустить сервер",
+  "settings.restart_confirm": "Действительно перезапустить сервер? Текущая обработка будет прервана.",
+  "settings.ollama_pull": "Скачать и подготовить модель",
 
   "settings.category.general": "Общие",
   "settings.category.ai": "ИИ / бэкенд зрения",

@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Herverwerking is in de wachtrij geplaatst.",
   "flash.rescan_already_running": "Er staat al een scan in de wachtrij of er loopt er een.",
   "flash.rescan_started": "Invoermap wordt opnieuw gescand.",
+  "flash.restart_failed": "Herstart mislukt: {error}",
+  "flash.restart_triggered": "De server start opnieuw — de pagina wordt automatisch herladen zodra hij weer bereikbaar is.",
+  "flash.restart_unavailable": "Herstarten vanuit de interface is in deze installatie niet beschikbaar.",
   "flash.unknown_level": "Onbekend verbeteringsniveau: {value}",
 
   "history.title": "Verwerkingsgeschiedenis",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Gewijzigd: {fields}",
   "history.no_changes": "geen wijzigingen",
 
+  "pull.already_running": "Er loopt al een modeldownload — even geduld.",
+  "pull.empty_model": "Voer eerst een modelnaam in.",
+  "pull.error": "Modeldownload mislukt: {error}",
+  "pull.success": "Model {model} is klaar.",
+
   "settings.title": "Instellingen",
   "settings.save": "Instellingen opslaan",
   "settings.saved": "Instellingen opgeslagen.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "herstart vereist",
   "settings.secret_placeholder": "•••• (ingesteld — leeg laten om te behouden)",
   "settings.secret_unset": "niet ingesteld",
+  "settings.restart_server": "Server herstarten",
+  "settings.restart_confirm": "Server echt herstarten? Lopende verwerking wordt onderbroken.",
+  "settings.ollama_pull": "Model downloaden & klaarzetten",
 
   "settings.category.general": "Algemeen",
   "settings.category.ai": "AI / vision-backend",

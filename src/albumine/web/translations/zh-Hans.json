@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "重新处理已加入队列。",
   "flash.rescan_already_running": "扫描已在队列中或正在进行。",
   "flash.rescan_started": "正在重新扫描输入文件夹。",
+  "flash.restart_failed": "重启失败：{error}",
+  "flash.restart_triggered": "服务器正在重启——恢复可用后页面将自动刷新。",
+  "flash.restart_unavailable": "此部署不支持从界面重启。",
   "flash.unknown_level": "未知的增强级别：{value}",
 
   "history.title": "处理历史",
@@ -102,6 +105,11 @@
   "history.changed_fields": "已更改：{fields}",
   "history.no_changes": "无更改",
 
+  "pull.already_running": "已有模型正在下载——请稍候。",
+  "pull.empty_model": "请先输入模型名称。",
+  "pull.error": "模型下载失败：{error}",
+  "pull.success": "模型 {model} 已就绪。",
+
   "settings.title": "设置",
   "settings.save": "保存设置",
   "settings.saved": "设置已保存。",
@@ -110,6 +118,9 @@
   "settings.restart_required": "需要重启",
   "settings.secret_placeholder": "••••（已设置 — 留空以保留）",
   "settings.secret_unset": "未设置",
+  "settings.restart_server": "重启服务器",
+  "settings.restart_confirm": "确定要重启服务器吗？正在进行的处理将被中断。",
+  "settings.ollama_pull": "下载并部署模型",
 
   "settings.category.general": "常规",
   "settings.category.ai": "AI / 视觉后端",

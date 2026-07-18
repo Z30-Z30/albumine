@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Ombearbetningen har lagts i kön.",
   "flash.rescan_already_running": "En skanning är redan köad eller pågår.",
   "flash.rescan_started": "Skannar om inmatningsmappen.",
+  "flash.restart_failed": "Omstart misslyckades: {error}",
+  "flash.restart_triggered": "Servern startar om — sidan laddas om automatiskt så snart den är tillbaka.",
+  "flash.restart_unavailable": "Omstart från gränssnittet är inte tillgänglig i den här installationen.",
   "flash.unknown_level": "Okänd förbättringsnivå: {value}",
 
   "history.title": "Bearbetningshistorik",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Ändrat: {fields}",
   "history.no_changes": "inga ändringar",
 
+  "pull.already_running": "En modellnedladdning pågår redan — vänta.",
+  "pull.empty_model": "Ange först ett modellnamn.",
+  "pull.error": "Modellnedladdningen misslyckades: {error}",
+  "pull.success": "Modellen {model} är redo.",
+
   "settings.title": "Inställningar",
   "settings.save": "Spara inställningar",
   "settings.saved": "Inställningarna sparades.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "omstart krävs",
   "settings.secret_placeholder": "•••• (inställd — lämna tom för att behålla)",
   "settings.secret_unset": "inte inställd",
+  "settings.restart_server": "Starta om servern",
+  "settings.restart_confirm": "Vill du verkligen starta om servern? Pågående bearbetning avbryts.",
+  "settings.ollama_pull": "Ladda ner & tillhandahåll modell",
 
   "settings.category.general": "Allmänt",
   "settings.category.ai": "AI / vision-backend",

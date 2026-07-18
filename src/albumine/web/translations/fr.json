@@ -86,6 +86,9 @@
   "flash.reprocess_queued": "Le retraitement a été mis en file d'attente.",
   "flash.rescan_already_running": "Une analyse est déjà en file d'attente ou en cours.",
   "flash.rescan_started": "Réanalyse du dossier d'entrée.",
+  "flash.restart_failed": "Échec du redémarrage : {error}",
+  "flash.restart_triggered": "Le serveur redémarre — la page se rechargera automatiquement dès qu'il sera de nouveau disponible.",
+  "flash.restart_unavailable": "Le redémarrage depuis l'interface n'est pas disponible dans ce déploiement.",
   "flash.unknown_level": "Niveau d'amélioration inconnu : {value}",
 
   "history.title": "Historique de traitement",
@@ -102,6 +105,11 @@
   "history.changed_fields": "Modifié : {fields}",
   "history.no_changes": "aucune modification",
 
+  "pull.already_running": "Un téléchargement de modèle est déjà en cours — veuillez patienter.",
+  "pull.empty_model": "Saisissez d'abord un nom de modèle.",
+  "pull.error": "Échec du téléchargement du modèle : {error}",
+  "pull.success": "Le modèle {model} est prêt.",
+
   "settings.title": "Paramètres",
   "settings.save": "Enregistrer les paramètres",
   "settings.saved": "Paramètres enregistrés.",
@@ -110,6 +118,9 @@
   "settings.restart_required": "redémarrage requis",
   "settings.secret_placeholder": "•••• (défini — laisser vide pour le conserver)",
   "settings.secret_unset": "non défini",
+  "settings.restart_server": "Redémarrer le serveur",
+  "settings.restart_confirm": "Vraiment redémarrer le serveur ? Les traitements en cours seront interrompus.",
+  "settings.ollama_pull": "Télécharger et préparer le modèle",
 
   "settings.category.general": "Général",
   "settings.category.ai": "IA / backend de vision",
