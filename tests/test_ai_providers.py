@@ -65,6 +65,96 @@ async def test_ollama_http_error_raises_provider_error():
         await provider.extract_back(_IMAGE)
 
 
+async def test_ollama_error_body_is_surfaced():
+    # Ollama's multimodal rejection: a nested error object (as of 0.3x).
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            400,
+            json={
+                "error": {
+                    "code": 400,
+                    "message": "Multimodal data provided, but model does not "
+                    "support multimodal requests.",
+                    "type": "invalid_request_error",
+                }
+            },
+        )
+
+    provider = OllamaProvider(
+        "http://ollama:11434", "llama3.2", client=_mock_client(handler)
+    )
+    with pytest.raises(AIProviderError) as excinfo:
+        await provider.extract_back(_IMAGE)
+    assert "does not support multimodal" in str(excinfo.value)
+    assert "400" in str(excinfo.value)
+
+
+async def test_ollama_json_string_error_body_is_unwrapped():
+    # Ollama 0.3x encodes the nested error object as a JSON string.
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            400,
+            json={
+                "error": json.dumps(
+                    {
+                        "error": {
+                            "code": 400,
+                            "message": "Multimodal data provided, but model "
+                            "does not support multimodal requests.",
+                            "type": "invalid_request_error",
+                        }
+                    }
+                )
+            },
+        )
+
+    provider = OllamaProvider(
+        "http://ollama:11434", "llama3.2", client=_mock_client(handler)
+    )
+    with pytest.raises(AIProviderError) as excinfo:
+        await provider.extract_back(_IMAGE)
+    message = str(excinfo.value)
+    assert "does not support multimodal" in message
+    assert "invalid_request_error" not in message  # unwrapped, not raw JSON
+
+
+async def test_ollama_string_error_body_is_surfaced():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404, json={"error": "model 'llava' not found"})
+
+    provider = OllamaProvider("http://ollama:11434", "llava", client=_mock_client(handler))
+    with pytest.raises(AIProviderError) as excinfo:
+        await provider.extract_back(_IMAGE)
+    assert "model 'llava' not found" in str(excinfo.value)
+
+
+async def test_ollama_health_check_flags_text_only_model():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/api/tags":
+            return httpx.Response(200, json={"models": [{"name": "llama3.2:latest"}]})
+        return httpx.Response(200, json={"capabilities": ["completion", "tools"]})
+
+    provider = OllamaProvider(
+        "http://ollama:11434", "llama3.2", client=_mock_client(handler)
+    )
+    health = await provider.health_check()
+    assert health.healthy is False
+    assert "Vision" in health.detail
+
+
+async def test_ollama_health_check_ok_for_vision_model():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/api/tags":
+            return httpx.Response(200, json={"models": [{"name": "qwen3-vl:8b"}]})
+        return httpx.Response(200, json={"capabilities": ["completion", "vision"]})
+
+    provider = OllamaProvider(
+        "http://ollama:11434", "qwen3-vl", client=_mock_client(handler)
+    )
+    health = await provider.health_check()
+    assert health.healthy is True
+
+
 async def test_ollama_health_check_reports_missing_model():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"models": [{"name": "mistral:latest"}]})
