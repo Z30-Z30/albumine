@@ -54,6 +54,8 @@ async def test_ollama_extract_back():
     assert captured["body"]["stream"] is False
     assert "format" in captured["body"]  # JSON-schema structured output
     assert captured["body"]["messages"][1]["images"]  # image attached
+    # Ollama's 4096-token default context is too small for vision requests.
+    assert captured["body"]["options"]["num_ctx"] >= 8192
 
 
 async def test_ollama_http_error_raises_provider_error():

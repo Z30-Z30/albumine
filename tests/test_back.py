@@ -20,6 +20,32 @@ async def test_extract_back_uses_provider(make_jpeg, tmp_path, fake_provider):
     assert provider.calls == 1
 
 
+async def test_extract_back_downscales_large_scans(tmp_path, fake_provider):
+    import io
+
+    from PIL import Image
+
+    # A full-resolution scan; must not reach the provider at this size.
+    path = tmp_path / "back_big.jpg"
+    Image.new("RGB", (3200, 2100), color=(230, 230, 220)).save(path, "JPEG")
+
+    received = {}
+
+    provider = fake_provider(BackExtraction(raw_text="ok"))
+    original_extract = provider.extract_back
+
+    async def capturing_extract(image, *, mime_type="image/jpeg"):
+        received["size"] = Image.open(io.BytesIO(image)).size
+        return await original_extract(image, mime_type=mime_type)
+
+    provider.extract_back = capturing_extract
+    await extract_back(PageRef(path), provider)
+
+    assert max(received["size"]) <= back_module._AI_MAX_DIM
+    # Aspect ratio preserved (3200x2100 -> 1568x1029).
+    assert received["size"] == (1568, 1029)
+
+
 async def test_extract_back_falls_back_to_tesseract(
     make_jpeg, tmp_path, fake_provider, monkeypatch
 ):

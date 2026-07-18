@@ -29,6 +29,10 @@ _log = get_logger(__name__)
 
 _DEFAULT_TIMEOUT = 120.0  # vision models on CPU can be slow
 
+# Ollama's default context window (4096 as of 0.3x) is too small for a photo
+# scan's vision tokens plus the extraction schema; request a larger one.
+_NUM_CTX = 8192
+
 
 def _error_detail(response: httpx.Response) -> str | None:
     """Extract Ollama's error message from an error response body.
@@ -146,6 +150,7 @@ class OllamaProvider(VisionProvider):
             "model": self.model,
             "stream": False,
             "format": BACK_EXTRACTION_SCHEMA,
+            "options": {"num_ctx": _NUM_CTX},
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": USER_INSTRUCTION, "images": [encoded]},

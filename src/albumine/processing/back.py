@@ -31,6 +31,11 @@ _ORIENT_MAX_DIM = 1200
 _ORIENT_MIN_SCORE = 10
 _ORIENT_MIN_ADVANTAGE = 1.5
 
+# Cap the image sent to the vision provider: full-resolution scans blow up the
+# vision token count (Ollama rejects requests beyond num_ctx), and handwriting
+# stays perfectly legible at this size.
+_AI_MAX_DIM = 1568
+
 
 @dataclass
 class BackResult:
@@ -173,12 +178,25 @@ def ocr_with_tesseract(image_bytes: bytes) -> str:
 
 
 def _load_jpeg_bytes(page_ref: PageRef) -> bytes:
-    """Load a page (image or PDF page) and return it as in-memory JPEG bytes."""
+    """Load a page (image or PDF page) and return it as in-memory JPEG bytes.
+
+    Downscales to at most ``_AI_MAX_DIM`` on the longest side — the bytes go
+    to the vision provider (and the Tesseract fallback), not to the archive.
+    """
     image = load_source(page_ref).convert("RGB")
     image, degrees = normalize_orientation(image)
     if degrees:
         _log.info(
             "back.orientation_corrected", source=str(page_ref.path), degrees=degrees
+        )
+    if max(image.size) > _AI_MAX_DIM:
+        original = image.size
+        image.thumbnail((_AI_MAX_DIM, _AI_MAX_DIM))
+        _log.info(
+            "back.downscaled_for_ai",
+            source=str(page_ref.path),
+            original=f"{original[0]}x{original[1]}",
+            sent=f"{image.size[0]}x{image.size[1]}",
         )
     buffer = io.BytesIO()
     image.save(buffer, "JPEG", quality=95)
